@@ -66,16 +66,16 @@ public class Field
         tileH = 70;
         tiles = new int[100]
         {
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 1,
+            0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 1, 0, 0, 0, 0, 0, 2, 1,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 0, 0, 0, 0, 0, 2, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 4, 0, 0, 0, 0, 0, 3, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 4, 0, 0, 0, 0, 0, 3, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
 
@@ -107,21 +107,15 @@ public class FObject
     public iRect rect;
     public iPoint v;
     public float moveSpeed;
-    
+    public int limitMinX;
+    public int limitMaxX;
+    public int limitMinY;
+    public int limitMaxY;
+    public int tmpY;
     public virtual void paint(float dt, iPoint off) { }
 }
 
-// 움직이지 못하게 = 최대 최소값을 사용
-// tile의 각 테두리
-// 좌상- position 우상- position + tileW 좌하 - position + tileH, 우하 - position + tileW + tileH
-// 좌측으로 이동 제한: tilePosition + tileW - PlayerPosition
-// 우측으로 이동 제한: tilePosition - playerRect.x - (PlayerPosition)
-// -> tilePosition - PlayerPosition + (tileW) + (-playerRect.x)
-// 위로 이동 제한: tilePosition + tileH - PlayerPosition
-// 아래로 이동 제한: tilePosition + PlyaerRect.y -PlayerPosition
-// -> tilePosition - PlayerPosition +(tileH) + (playerRect)
-// 매 프레임마다 이동가능한 거리의 최대 최소값을 구해야함(어디서 구하냐)
-// moveSpeed * dt
+
 
 
 
@@ -152,38 +146,96 @@ public class Player : FObject
         {
             int x = (int)(position.x + rect.origin.x); x /= Proc.f.tileW;
             int y = (int)(position.y + rect.origin.y); y /= Proc.f.tileH;
-            int minX = Proc.f.tileW * x;
-            for(int i=x-1; i>-1; i--)
+            int minX = Proc.f.tileW * (x - 1);
+            for (int i = x - 1; i > -1; i--)
             {
-                if(Proc.f.tiles[Proc.f.tileX*y+i]==1 )
+                if (Proc.f.tiles[Proc.f.tileX * y + i] == 1)
                 {
-                    minX = Proc.f.tileW * i;
+#if false
+                    limitMinX = Proc.f.tileW * (i + 1);
+                    tmpY = y;
                     break;
                 }
+                if (y != tmpY)
+                {
+                    limitMinX = 0;
+                }
+                    minX = limitMinX;
+#else
+                    minX = Proc.f.tileW * (i + 1);
+                    break;
+                }
+#endif
             }
             position.x += v.x * moveSpeed * dt;
             if (position.x < minX)
+            {
                 position.x = minX;
+            }
         }
         else if ( v.x > 0 )
         {
             int x = (int)(position.x + rect.origin.x + rect.size.width); x /= Proc.f.tileW;
             int y = (int)(position.y + rect.origin.y); y /= Proc.f.tileH;
-            int maxX = Proc.f.tileW * (x + 1) - 1;
+            //int maxX = Proc.f.tileW * (x + 1) - 1;
+            int maxX = Proc.f.tileW * (Proc.f.tileX - 1) - (int)rect.size.width;
             for (int i = x + 1; i < Proc.f.tileX-1; i++)
             {
+#if true
+
+                if (Proc.f.tiles[Proc.f.tileX * y + i] == 1)
+                {
+                    limitMaxX = Proc.f.tileW * i - (int)rect.size.width;
+                    tmpY = y;
+                    break;
+                }
+                if (y != tmpY)
+                {
+                    limitMaxX = Proc.f.tileX * Proc.f.tileW;
+                }
+                maxX = limitMaxX;
+#else
                 if (Proc.f.tiles[Proc.f.tileX * y + i] == 1)
                 {
                     maxX = Proc.f.tileW * i - 1;
                     break;
                 }
+#endif
             }
             position.x += v.x * moveSpeed * dt;
             if (position.x > maxX)
                 position.x = maxX;
         }
+#if false
+        if (v.y < 0)
+        {
+            int x = (int)(position.x + rect.origin.x); x /= Proc.f.tileW;
+            int y = (int)(position.y + rect.origin.y); y /= Proc.f.tileH;
+            int minY = Proc.f.tileH * y;
+            for (int i = y - 1; i > -1; i--)
+            {
+                if (Proc.f.tiles[Proc.f.tileY * x + i] == 1)
+                {
+                    limitMinY = Proc.f.tileH * i;
+                    break;
+                }
+                minY = limitMinY;
+            }
+            position.y += v.y * moveSpeed * dt;
+            if (position.y < minY)
+            {
+                position.y = minY;
+            }
+        }
+        else if(v.y > 0)
+        {
+            position.y += v.y * moveSpeed * dt;
+        }
+#else
+        position.y += v.y * moveSpeed * dt;
 #endif
-    }
+#endif
+            }
 
 
     public void keyboard(iKeystate stat, iKeyboard key)
