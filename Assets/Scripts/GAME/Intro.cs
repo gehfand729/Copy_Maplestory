@@ -4,41 +4,26 @@ using UnityEngine;
 
 using STD;
 
-public class GObject
-{
-    public GObject()
-    {
-
-    }
-
-    ~GObject()
-    {
-
-    }
-
-    public virtual void draw(float dt) { }
-    public virtual void key(iKeystate stat, iPoint point) { }
-}
 
 public class Intro : GObject
 {
-    public Intro()
+    public override void load()
     {
-
-    }
-
-    ~Intro()
-    {
-
-    }
+	}
 
     public override void draw(float dt)
     {
-
+        setRGBA(1, 0, 0, 1);
+        fillRect(0, 0, MainCamera.devWidth, MainCamera.devHeight);
     }
 
     public override void key(iKeystate stat, iPoint point)
     {
-
+        if( stat==iKeystate.Began )
+        {
+            Main.me.reset("Menu");
+        }
     }
+
+
 }

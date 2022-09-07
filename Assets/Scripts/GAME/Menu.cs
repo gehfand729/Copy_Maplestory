@@ -6,24 +6,21 @@ using STD;
 
 public class Menu : GObject
 {
-    public Menu()
+    public override void load()
     {
-
-    }
-
-    ~Menu()
-    {
-
     }
 
     public override void draw(float dt)
     {
-
+        setRGBA(1, 1, 0, 1);
+        fillRect(0, 0, MainCamera.devWidth, MainCamera.devHeight);
     }
 
     public override void key(iKeystate stat, iPoint point)
     {
-
+        if (stat == iKeystate.Began)
+        {
+            Main.me.reset("Proc");
+        }
     }
-
 }

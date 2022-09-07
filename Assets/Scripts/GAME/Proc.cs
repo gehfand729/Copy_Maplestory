@@ -9,15 +9,10 @@ public class Proc : GObject
     public static Field f;
     Player p;
 
-    public Proc()
+    public override void load()
     {
         f = new Field();
         p = new Player();
-    }
-
-    ~Proc()
-    {
-
     }
 
     public override void draw(float dt)
@@ -66,15 +61,15 @@ public class Field
         tileH = 70;
         tiles = new int[100]
         {
-            0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 0, 0, 0, 0, 0, 0, 2, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 2, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 1, 0, 0, 1, 0, 0,
-            0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 4, 0, 0, 0, 0, 0, 3, 0,
+            0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
@@ -87,6 +82,9 @@ public class Field
 
     public void paint(float dt)
     {
+        iGUI.instance.setRGBA(0.5f, 0.5f, 0.5f, 1);
+        iGUI.instance.fillRect(0, 0, tileW * tileX, tileH * tileY);
+
         int i, tileXY = tileX * tileY;
         for(i = 0; i<tileXY; i++)
         {
@@ -107,6 +105,7 @@ public class FObject
     public iRect rect;
     public iPoint v;
     public float moveSpeed;
+    public float gravity;
     public virtual void paint(float dt, iPoint off) { }
 }
 
@@ -119,9 +118,10 @@ public class Player : FObject
     public Player()
     {
         position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 50, 50);
+        rect = new iRect(0, 0, 150, 150);
         v = new iPoint(0, 0);
         moveSpeed = 300;
+        gravity = 300;
 
         MainCamera.methodKeyboard += keyboard;
     }
@@ -133,10 +133,6 @@ public class Player : FObject
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 
         // draw
-#if false
-        position += v * moveSpeed * dt;
-#else
-
         // collision about field
         if (v.x < 0)
         {
@@ -144,16 +140,6 @@ public class Player : FObject
             int x = (int)(position.x + rect.origin.x); x /= Proc.f.tileW;
             int y = (int)(posY); y /= Proc.f.tileH;
             int minX = 0;
-#if false
-            for (int i = x - 1; i > -1; i--)
-            {
-                if (Proc.f.tiles[Proc.f.tileX * y + i] == 1)
-                {
-                    minX = Proc.f.tileW * (i + 1);
-                    break;
-                }
-            }
-#else
             for (int i = x - 1; i > -1; i--)
             {
                 bool check = false;
@@ -169,7 +155,6 @@ public class Player : FObject
                 if (check)
                     break;
             }
-#endif
             position.x += v.x * moveSpeed * dt;
             if (position.x < minX)
             {
@@ -191,6 +176,7 @@ public class Player : FObject
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
                     {
                         maxX = Proc.f.tileW * i - 1;
+                        check = true;
                         break;
                     }
                 }
@@ -202,6 +188,7 @@ public class Player : FObject
                 posX = maxX;
             position.x = posX - rect.size.width;
         }
+#if true
         if (v.y < 0)
         {
             float posX = position.x + rect.origin.x + rect.size.width;
@@ -216,6 +203,7 @@ public class Player : FObject
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
                     {
                         minY = Proc.f.tileH * (j + 1);
+                        check = true;
                         break;
                     }
                 }
@@ -243,6 +231,7 @@ public class Player : FObject
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
                     {
                         maxY = Proc.f.tileH * j - 1;
+                        check = true;
                         break;
                     }
                 }
@@ -254,8 +243,10 @@ public class Player : FObject
                 posY = maxY;
             position.y = posY - rect.size.height;
         }
+#else
+
 #endif
-        }
+    }
 
 
     public void keyboard(iKeystate stat, iKeyboard key)

@@ -33,14 +33,13 @@ public class MainCamera : MonoBehaviour
 
 		initGameHierachy();
 
-		Fbo.createGameObject("Fbo");
+		//new Main();
 	}
 
 	void Update()
 	{
 		iGUI.setResolution(devWidth, devHeight);
 
-#if false
 		int btn = 0;// 0:left, 1:right, 2:wheel, 3foward, 4back
 		if (Input.GetMouseButtonDown(btn))
 		{
@@ -65,15 +64,16 @@ public class MainCamera : MonoBehaviour
 		//if (drag)
 		{
 			Vector3 v = Input.mousePosition;
-			if (prevV == v)
-				return;
-			prevV = v;
+			if (prevV != v)
+			{
+				prevV = v;
 
-			iPoint p = mousePosition();
-			//Debug.LogFormat($"Moved p({p.x},{p.y})");
+				iPoint p = mousePosition();
+				//Debug.LogFormat($"Moved p({p.x},{p.y})");
 
-			if (methodMouse != null)
-				methodMouse(iKeystate.Moved, p);
+				if (methodMouse != null)
+					methodMouse(iKeystate.Moved, p);
+			}
 		}
 
 		if( Input.mouseScrollDelta!=Vector2.zero )
@@ -84,7 +84,6 @@ public class MainCamera : MonoBehaviour
 										Input.mouseScrollDelta.y));
 			}
 		}
-#endif
 		// keyboard
 		for(int i = 0; i < kc.Length; i++)
         {
