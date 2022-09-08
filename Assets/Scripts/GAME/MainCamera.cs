@@ -120,35 +120,24 @@ public class MainCamera : MonoBehaviour
 				keyUp |= n;
 				keyboard &= ~n;
 			}
-			else if ((keyboard & (1 + i)) == (1 + i))
-			{
-			}
 		}
 
 		if (keyDown != 0)
-		{
 			methodKeyboard(iKeystate.Began, keyDown);
-			Debug.Log($"keyDown: {keyDown}");
-		}
 		if (keyboard != 0)
-		{
 			methodKeyboard(iKeystate.Moved, keyboard);
-			Debug.Log($"keyMove: {keyboard}");
-		}
 		if (keyUp != 0)
-		{
 			methodKeyboard(iKeystate.Ended, keyUp);
-			Debug.Log($"keyUp : {keyUp}");
-		}
 #endif
 
 		drawGameHierachy();
 	}
 
 	int keyboard = 0;
-	KeyCode[] kc = new KeyCode[4] {
+	KeyCode[] kc = new KeyCode[] {
 			KeyCode.LeftArrow, KeyCode.RightArrow,
 			KeyCode.UpArrow, KeyCode.DownArrow,
+			KeyCode.Space,
 		};
 
 	public static Vector3 iPointToVector3(iPoint p)
