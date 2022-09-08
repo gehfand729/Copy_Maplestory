@@ -14,7 +14,7 @@ public class Main
 	{
 		me = this;
 
-		curr = createGameObject("Intro");
+		curr = createGameObject("Proc");
 		next = null;
 	}
 
