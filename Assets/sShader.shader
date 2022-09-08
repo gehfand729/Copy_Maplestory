@@ -68,286 +68,245 @@ Shader "Unlit/sShader"
             vec4 iMouse;
 #endif
 
-#define WIND
+            // "Wind Waker Ocean" by @Polyflare (29/1/15)
+            // License: Creative Commons Attribution 4.0 International
 
-            const int NUM_STEPS = 64;
-            const int NUM_STEPS_VOLUME = 10;
-            const float STRIDE = 0.75;
-            const float STRIDE_VOLUME = 1.0;
-            const float PI = 3.1415;
-            const float EPSILON = 1e-3;
+            // Source code for the texture generator is available at:
+            // https://github.com/lmurray/circleator
 
-            // terrain
-            const int ITER_GEOMETRY = 7;
-            const int ITER_FRAGMENT = 10;
+            //-----------------------------------------------------------------------------
+            // User settings
 
-            const float TERR_HEIGHT = 12.0;
-            const float TERR_WARP = 0.7;
-            const float TERR_OCTAVE_AMP = 0.58;
-            const float TERR_OCTAVE_FREQ = 2.5;
-            const float TERR_MULTIFRACT = 0.27;
-            const float TERR_CHOPPY = 1.9;
-            const float TERR_FREQ = 0.24;
-            const vec2 TERR_OFFSET = vec2(13.5, 15.);
+            // 0 = No antialiasing
+            // 1 = 2x2 supersampling antialiasing
+#define ANTIALIAS 1
 
-            const vec3 SKY_COLOR = vec3(0.5, 0.59, 0.75) * 0.6;
-            const vec3 SUN_COLOR = vec3(1., 1., 0.98) * 0.7;
-            const vec3 COLOR_SNOW = vec3(1.0, 1.0, 1.1) * 2.2;
-            const vec3 COLOR_ROCK = vec3(0.0, 0.0, 0.1);
-            vec3 light = normalize(vec3(1.0, 1.0, -0.3));
+// 0 = Static camera
+// 1 = Animate the camera
+#define ANIMATE_CAM 0
 
-            // math
-            mat3 fromEuler(vec3 ang) {
-                vec2 a1 = vec2(sin(ang.x), cos(ang.x));
-                vec2 a2 = vec2(sin(ang.y), cos(ang.y));
-                vec2 a3 = vec2(sin(ang.z), cos(ang.z));
-                mat3 m;
-                m[0] = vec3(a1.y * a3.y + a1.x * a2.x * a3.x, a1.y * a2.x * a3.x + a3.y * a1.x, -a2.y * a3.x);
-                m[1] = vec3(-a2.y * a1.x, a1.y * a2.y, a2.x);
-                m[2] = vec3(a3.y * a1.x * a2.x + a1.y * a3.x, a1.x * a3.x - a1.y * a3.y * a2.x, a2.y * a3.y);
-                return m;
-            }
-            float saturate(float x) { return clamp(x, 0., 1.); }
+// 0 = Do not distort the water texture
+// 1 = Apply lateral distortion to the water texture
+#define DISTORT_WATER 1
 
-            /*float hash(vec2 p) {
-                float h = dot(p,vec2(127.1,311.7));
-                return fract(sin(h)*43758.5453123);
-            }*/
-            float hash(vec2 p) {
-                uint n = floatBitsToUint(p.x * 122.0 + p.y);
-                n = (n << 13U) ^ n;
-                n = n * (n * n * 15731U + 789221U) + 1376312589U;
-                return uintBitsToFloat((n >> 9U) | 0x3f800000U) - 1.0;
-            }
+// 0 = Disable parallax effects
+// 1 = Change the height of the water with parallax effects
+#define PARALLAX_WATER 1
 
-            float hash3(vec3 p) {
-                return fract(sin(p.x * p.y * p.z) * 347624.531834);
+// 0 = Antialias the water texture
+// 1 = Do not antialias the water texture
+#define FAST_CIRCLES 1
+
+//-----------------------------------------------------------------------------
+
+#define WATER_COL vec3(0.0, 0.4453, 0.7305)
+#define WATER2_COL vec3(0.0, 0.4180, 0.6758)
+#define FOAM_COL vec3(0.8125, 0.9609, 0.9648)
+#define FOG_COL vec3(0.6406, 0.9453, 0.9336)
+#define SKY_COL vec3(0.0, 0.8203, 1.0)
+
+#define M_2PI 6.283185307
+#define M_6PI 18.84955592
+
+            float circ(vec2 pos, vec2 c, float s)
+            {
+                c = abs(pos - c);
+                c = min(c, 1.0 - c);
+#if FAST_CIRCLES
+                return dot(c, c) < s ? -1.0 : 0.0;
+#else
+                return smoothstep(0.0, 0.002, sqrt(s) - sqrt(dot(c, c))) * -1.0;
+#endif
             }
 
-            // 3d noise
-            float noise_3(in vec3 p) {
-                vec3 i = floor(p);
-                vec3 f = fract(p);
-                vec3 u = f * f * (3.0 - 2.0 * f);
-
-                float a = hash3(i + vec3(0.0, 0.0, 0.0));
-                float b = hash3(i + vec3(1.0, 0.0, 0.0));
-                float c = hash3(i + vec3(0.0, 1.0, 0.0));
-                float d = hash3(i + vec3(1.0, 1.0, 0.0));
-                float v1 = mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-
-                a = hash3(i + vec3(0.0, 0.0, 1.0));
-                b = hash3(i + vec3(1.0, 0.0, 1.0));
-                c = hash3(i + vec3(0.0, 1.0, 1.0));
-                d = hash3(i + vec3(1.0, 1.0, 1.0));
-                float v2 = mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-
-                return abs(mix(v1, v2, u.z));
+            // Foam pattern for the water constructed out of a series of circles
+            float waterlayer(vec2 uv)
+            {
+                uv = mod(uv, 1.0); // Clamp to [0..1]
+#if 1
+                float ret = 1.;
+#else
+                float ret = 1.0;
+#endif
+                ret += circ(uv, vec2(0.37378, 0.277169), 0.0268181);
+                ret += circ(uv, vec2(0.0317477, 0.540372), 0.0193742);
+                ret += circ(uv, vec2(0.430044, 0.882218), 0.0232337);
+                ret += circ(uv, vec2(0.641033, 0.695106), 0.0117864);
+                ret += circ(uv, vec2(0.0146398, 0.0791346), 0.0299458);
+                ret += circ(uv, vec2(0.43871, 0.394445), 0.0289087);
+                ret += circ(uv, vec2(0.909446, 0.878141), 0.028466);
+                ret += circ(uv, vec2(0.310149, 0.686637), 0.0128496);
+                ret += circ(uv, vec2(0.928617, 0.195986), 0.0152041);
+                ret += circ(uv, vec2(0.0438506, 0.868153), 0.0268601);
+                ret += circ(uv, vec2(0.308619, 0.194937), 0.00806102);
+                ret += circ(uv, vec2(0.349922, 0.449714), 0.00928667);
+                ret += circ(uv, vec2(0.0449556, 0.953415), 0.023126);
+                ret += circ(uv, vec2(0.117761, 0.503309), 0.0151272);
+                ret += circ(uv, vec2(0.563517, 0.244991), 0.0292322);
+                ret += circ(uv, vec2(0.566936, 0.954457), 0.00981141);
+                ret += circ(uv, vec2(0.0489944, 0.200931), 0.0178746);
+                ret += circ(uv, vec2(0.569297, 0.624893), 0.0132408);
+                ret += circ(uv, vec2(0.298347, 0.710972), 0.0114426);
+                ret += circ(uv, vec2(0.878141, 0.771279), 0.00322719);
+                ret += circ(uv, vec2(0.150995, 0.376221), 0.00216157);
+                ret += circ(uv, vec2(0.119673, 0.541984), 0.0124621);
+                ret += circ(uv, vec2(0.629598, 0.295629), 0.0198736);
+                ret += circ(uv, vec2(0.334357, 0.266278), 0.0187145);
+                ret += circ(uv, vec2(0.918044, 0.968163), 0.0182928);
+                ret += circ(uv, vec2(0.965445, 0.505026), 0.006348);
+                ret += circ(uv, vec2(0.514847, 0.865444), 0.00623523);
+                ret += circ(uv, vec2(0.710575, 0.0415131), 0.00322689);
+                ret += circ(uv, vec2(0.71403, 0.576945), 0.0215641);
+                ret += circ(uv, vec2(0.748873, 0.413325), 0.0110795);
+                ret += circ(uv, vec2(0.0623365, 0.896713), 0.0236203);
+                ret += circ(uv, vec2(0.980482, 0.473849), 0.00573439);
+                ret += circ(uv, vec2(0.647463, 0.654349), 0.0188713);
+                ret += circ(uv, vec2(0.651406, 0.981297), 0.00710875);
+                ret += circ(uv, vec2(0.428928, 0.382426), 0.0298806);
+                ret += circ(uv, vec2(0.811545, 0.62568), 0.00265539);
+                ret += circ(uv, vec2(0.400787, 0.74162), 0.00486609);
+                ret += circ(uv, vec2(0.331283, 0.418536), 0.00598028);
+                ret += circ(uv, vec2(0.894762, 0.0657997), 0.00760375);
+                ret += circ(uv, vec2(0.525104, 0.572233), 0.0141796);
+                ret += circ(uv, vec2(0.431526, 0.911372), 0.0213234);
+                ret += circ(uv, vec2(0.658212, 0.910553), 0.000741023);
+                ret += circ(uv, vec2(0.514523, 0.243263), 0.0270685);
+                ret += circ(uv, vec2(0.0249494, 0.252872), 0.00876653);
+                ret += circ(uv, vec2(0.502214, 0.47269), 0.0234534);
+                ret += circ(uv, vec2(0.693271, 0.431469), 0.0246533);
+                ret += circ(uv, vec2(0.415, 0.884418), 0.0271696);
+                ret += circ(uv, vec2(0.149073, 0.41204), 0.00497198);
+                ret += circ(uv, vec2(0.533816, 0.897634), 0.00650833);
+                ret += circ(uv, vec2(0.0409132, 0.83406), 0.0191398);
+                ret += circ(uv, vec2(0.638585, 0.646019), 0.0206129);
+                ret += circ(uv, vec2(0.660342, 0.966541), 0.0053511);
+                ret += circ(uv, vec2(0.513783, 0.142233), 0.00471653);
+                ret += circ(uv, vec2(0.124305, 0.644263), 0.00116724);
+                ret += circ(uv, vec2(0.99871, 0.583864), 0.0107329);
+                ret += circ(uv, vec2(0.894879, 0.233289), 0.00667092);
+                ret += circ(uv, vec2(0.246286, 0.682766), 0.00411623);
+                ret += circ(uv, vec2(0.0761895, 0.16327), 0.0145935);
+                ret += circ(uv, vec2(0.949386, 0.802936), 0.0100873);
+                ret += circ(uv, vec2(0.480122, 0.196554), 0.0110185);
+                ret += circ(uv, vec2(0.896854, 0.803707), 0.013969);
+                ret += circ(uv, vec2(0.292865, 0.762973), 0.00566413);
+                ret += circ(uv, vec2(0.0995585, 0.117457), 0.00869407);
+                ret += circ(uv, vec2(0.377713, 0.00335442), 0.0063147);
+                ret += circ(uv, vec2(0.506365, 0.531118), 0.0144016);
+                ret += circ(uv, vec2(0.408806, 0.894771), 0.0243923);
+                ret += circ(uv, vec2(0.143579, 0.85138), 0.00418529);
+                ret += circ(uv, vec2(0.0902811, 0.181775), 0.0108896);
+                ret += circ(uv, vec2(0.780695, 0.394644), 0.00475475);
+                ret += circ(uv, vec2(0.298036, 0.625531), 0.00325285);
+                ret += circ(uv, vec2(0.218423, 0.714537), 0.00157212);
+                ret += circ(uv, vec2(0.658836, 0.159556), 0.00225897);
+                ret += circ(uv, vec2(0.987324, 0.146545), 0.0288391);
+                ret += circ(uv, vec2(0.222646, 0.251694), 0.00092276);
+                ret += circ(uv, vec2(0.159826, 0.528063), 0.00605293);
+                return max(ret, 0.0);
             }
 
-            // noise with analytical derivatives (thanks to iq)
-            vec3 noise_deriv(in vec2 p) {
-                vec2 i = floor(p);
-                vec2 f = fract(p);
-                vec2 u = f * f * (3.0 - 2.0 * f);
+            // Procedural texture generation for the water
+            vec3 water(vec2 uv, vec3 cdir)
+            {
+                uv *= 1.;
 
-                float a = hash(i + vec2(0.0, 0.0));
-                float b = hash(i + vec2(1.0, 0.0));
-                float c = hash(i + vec2(0.0, 1.0));
-                float d = hash(i + vec2(1.0, 1.0));
-                float h1 = mix(a, b, u.x);
-                float h2 = mix(c, d, u.x);
-
-                return vec3(abs(mix(h1, h2, u.y)),
-                    6.0 * f * (1.0 - f) * (vec2(b - a, c - a) + (a - b - c + d) * u.yx));
-            }
-
-            // lighting
-            float diffuse(vec3 n, vec3 l, float p) { return pow(max(dot(n, l), 0.0), p); }
-            float specular(vec3 n, vec3 l, vec3 e, float s) {
-                float nrm = (s + 8.0) / (3.1415 * 8.0);
-                return pow(max(dot(reflect(e, n), l), 0.0), s) * nrm;
-            }
-
-            // terrain
-            vec3 octave(vec2 uv) {
-                vec3 n = noise_deriv(uv);
-                return vec3(pow(n.x, TERR_CHOPPY), n.y, n.z);
-            }
-
-            float map(vec3 p) {
-                float frq = TERR_FREQ;
-                float amp = 1.0;
-                vec2 uv = p.xz * frq + TERR_OFFSET;
-                vec2 dsum = vec2(0.0);
-
-                float h = 0.0;
-                for (int i = 0; i < ITER_GEOMETRY; i++) {
-                    vec3 n = octave((uv - dsum * TERR_WARP) * frq);
-                    h += n.x * amp;
-
-                    dsum += n.yz * (n.x * 2.0 - 1.0) * amp;
-                    frq *= TERR_OCTAVE_FREQ;
-                    amp *= TERR_OCTAVE_AMP;
-                    amp *= pow(n.x, TERR_MULTIFRACT);
-                }
-                h *= TERR_HEIGHT / (1.0 + dot(p.xz, p.xz) * 1e-3);
-                return p.y - h;
-            }
-            float map_detailed(vec3 p) {
-                float frq = TERR_FREQ;
-                float amp = 1.0;
-                vec2 uv = p.xz * frq + TERR_OFFSET;
-                vec2 dsum = vec2(0.0);
-
-                float h = 0.0;
-                for (int i = 0; i < ITER_FRAGMENT; i++) {
-                    vec3 n = octave((uv - dsum * TERR_WARP) * frq);
-                    h += n.x * amp;
-
-                    dsum += n.yz * (n.x * 2.0 - 1.0) * amp;
-                    frq *= TERR_OCTAVE_FREQ;
-                    amp *= TERR_OCTAVE_AMP;
-                    amp *= pow(n.x, TERR_MULTIFRACT);
-                }
-                h *= TERR_HEIGHT / (1.0 + dot(p.xz, p.xz) * 1e-3);
-                return p.y - h;
-            }
-
-            float getAO(vec3 p) {
-                float frq = TERR_FREQ;
-                float amp = 1.0;
-                vec2 uv = p.xz * frq + TERR_OFFSET;
-                vec2 dsum = vec2(0.0);
-
-                float h = 1.0;
-                for (int i = 0; i < ITER_FRAGMENT; i++) {
-                    vec3 n = octave((uv - dsum * TERR_WARP) * frq);
-
-                    float it = float(i) / float(ITER_FRAGMENT - 1);
-                    float iao = mix(sqrt(n.x), 1.0, it * 0.9);
-                    iao = mix(iao, 1.0, 1.0 - it);
-                    h *= iao;
-
-                    dsum += n.yz * (n.x * 2.0 - 1.0) * amp;
-                    frq *= TERR_OCTAVE_FREQ;
-                    amp *= TERR_OCTAVE_AMP;
-                    amp *= pow(n.x, TERR_MULTIFRACT);
-                }
-
-                return sqrt(h * 2.0);
-            }
-            float map_noise(vec3 p) {
-                p *= 0.5;
-                float ret = noise_3(p);
-                ret += noise_3(p * 2.0) * 0.5;
-                ret = (ret - 1.0) * 5.0;
-                return saturate(ret * 0.5 + 0.5);
-            }
-
-            // tracing
-            vec3 getNormal(vec3 p, float eps) {
-                vec3 n;
-                n.y = map_detailed(p);
-                n.x = map_detailed(vec3(p.x + eps, p.y, p.z)) - n.y;
-                n.z = map_detailed(vec3(p.x, p.y, p.z + eps)) - n.y;
-                n.y = eps;
-                return normalize(n);
-            }
-
-            float hftracing(vec3 ori, vec3 dir, out vec3 p, out float t) {
-                float d = 0.0;
-                t = 0.0;
-                for (int i = 0; i < NUM_STEPS; i++) {
-                    p = ori + dir * t;
-                    d = map(p);
-                    if (d < 0.0) break;
-                    t += d * 0.6;
-                }
-                return d;
-            }
-
-            float volume_tracing(vec3 ori, vec3 dir, float maxt) {
-                float d = 0.0;
-                float t = 0.0;
-                float count = 0.0;
-                for (int i = 0; i < NUM_STEPS_VOLUME; i++) {
-                    vec3 p = ori + dir * t;
-                    d += map_noise(p);
-                    if (t >= maxt) break;
-                    t += STRIDE_VOLUME;
-                    count += 1.0;
-                }
-                return d / count;
-            }
-
-            // color
-            vec3 sky_color(vec3 e) {
-                e.y = max(e.y, 0.0);
-                vec3 ret;
-                ret.x = pow(1.0 - e.y, 3.0);
-                ret.y = pow(1.0 - e.y, 1.2);
-                ret.z = 0.8 + (1.0 - e.y) * 0.3;
-                return ret;
-            }
-            vec3 terr_color(in vec3 p, in vec3 n, in vec3 eye, in vec3 dist) {
-                float slope = 1.0 - dot(n, vec3(0., 1., 0.));
-                vec3 ret = mix(COLOR_SNOW, COLOR_ROCK, smoothstep(0.0, 0.2, slope * slope));
-                ret = mix(ret, COLOR_SNOW, saturate(smoothstep(0.6, 0.8, slope + (p.y - TERR_HEIGHT * 0.5) * 0.05)));
-                return ret;
-            }
-
-            // main
-            void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-                vec2 uv = fragCoord.xy / iResolution.xy;
-                uv = uv * 2.0 - 1.0;
-                uv.x *= iResolution.x / iResolution.y;
-                float time = iTime * 0.1;
-
-                // ray
-                vec3 ang = vec3(sin(time * 6.0) * 0.1, 0.1, -time + iMouse.x * 0.01);
-                mat3 rot = fromEuler(ang);
-
-                vec3 ori = vec3(0.0, 5.0, 40.0);
-                vec3 dir = normalize(vec3(uv.xy, -2.0));
-                dir.z += length(uv) * 0.12;
-                dir = normalize(dir) * rot;
-                ori = ori * rot;
-                ori.y -= map(ori) * 0.75 - 3.0;
-
-                // tracing
-                vec3 p;
-                float t;
-                float dens = hftracing(ori, dir, p, t);
-                vec3 dist = p - ori;
-                vec3 n = getNormal(p, dot(dist, dist) * (1e-1 / iResolution.x));
-
-                // terrain
-                float ao = getAO(p);
-                vec3 color = terr_color(p, n, dir, dist) * SKY_COLOR;
-                color += vec3(diffuse(n, light, 2.0) * SUN_COLOR);
-                color += vec3(specular(n, light, dir, 20.0) * SUN_COLOR * 0.4);
-                color *= ao;
-
-                // fog
-                vec3 fog = sky_color(vec3(dir.x, 0., dir.z));
-                color = mix(color, fog, saturate(min(length(dist) * 0.018, dot(p.xz, p.xz) * 0.001)));
-
-                // sky
-                color = mix(sky_color(dir), color, step(dens, 4.0));
-                color += pow(max(dot(dir, light), 0.0), 3.0) * 0.3;
-
-                // wind
-#ifdef WIND
-                float wind = volume_tracing(ori, dir, t) * saturate(1.8 - p.y * 0.2);
-                color = mix(color, fog, wind * 1.6);
+#if PARALLAX_WATER
+                // Parallax height distortion with two directional waves at
+                // slightly different angles.
+                vec2 a = 0.025 * cdir.xz / cdir.y; // Parallax offset
+                float h = sin(uv.x + iTime); // Height at UV
+                uv += a * h;
+                h = sin(0.841471 * uv.x - 0.540302 * uv.y + iTime);
+                uv += a * h;
 #endif
 
-                // post
-                //color = (1.0 - exp(-color)) * 1.5;
-                color = (color - 1.0) * 1.2 + 1.0;
-                color = pow(color * 0.8, vec3(1.0 / 2.2));
-                fragColor = vec4(color, 1.0);
+#if DISTORT_WATER
+                // Texture distortion
+                float d1 = mod(uv.x + uv.y, M_2PI);
+                float d2 = mod((uv.x + uv.y + 0.25) * 1.3, M_6PI);
+                d1 = iTime * 0.07 + d1;
+                d2 = iTime * 0.5 + d2;
+                vec2 dist = vec2(
+                    sin(d1) * 0.15 + sin(d2) * 0.05,
+                    cos(d1) * 0.15 + cos(d2) * 0.05
+                );
+#else
+                const vec2 dist = vec2(0.0);
+#endif
+
+                vec3 ret = mix(WATER_COL, WATER2_COL, waterlayer(uv + dist.xy));
+                ret = mix(ret, FOAM_COL, waterlayer(1.0 - uv - dist.yx));
+                return ret;
+            }
+
+            // Camera perspective based on [0..1] viewport
+            vec3 pixtoray(vec2 uv)
+            {
+                vec3 pixpos;
+                pixpos.xy = uv - 0.5;
+                pixpos.y *= iResolution.y / iResolution.x; // Aspect correction
+                pixpos.z = -0.6; // Focal length (Controls field of view)
+                return normalize(pixpos);
+            }
+
+            // Quaternion-vector multiplication
+            vec3 quatmul(vec4 q, vec3 v)
+            {
+                vec3 qvec = q.xyz;
+                vec3 uv = cross(qvec, v);
+                vec3 uuv = cross(qvec, uv);
+                uv *= (2.0 * q.w);
+                uuv *= 2.0;
+                return v + uv + uuv;
+            }
+
+            void mainImage(out vec4 fragColor, in vec2 fragCoord)
+            {
+                fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+#if ANTIALIAS
+                for (int y = 0; y < 2; y++) {
+                    for (int x = 0; x < 2; x++) {
+                        vec2 offset = 0.5 * vec2(x, y) - 0.25;
+#else
+                vec2 offset = vec2(0.0);
+#endif
+                // Camera stuff
+                vec2 uv = (fragCoord.xy + offset) / iResolution.xy;
+                vec3 cpos = vec3(0.0, 4.0, 10.0); // Camera position
+                vec3 cdir = pixtoray(uv);
+                cdir = quatmul( // Tilt down slightly
+                    vec4(-0.19867, 0.0, 0.0, 0.980067), cdir);
+#if ANIMATE_CAM
+                // Rotating camera
+                float cost = cos(iTime * -0.05);
+                float sint = sin(iTime * -0.05);
+                cdir.xz = cost * cdir.xz + sint * vec2(-cdir.z, cdir.x);
+                cpos.xz = cost * cpos.xz + sint * vec2(-cpos.z, cpos.x);
+#endif
+
+                // Ray-plane intersection
+                const vec3 ocean = vec3(0.0, 1.0, 0.0);
+                float dist = -dot(cpos, ocean) / dot(cdir, ocean);
+                vec3 pos = cpos + dist * cdir;
+
+                vec3 pix;
+                if (dist > 0.0 && dist < 100.0) {
+                    // Ocean
+                    vec3 wat = water(pos.xz, cdir);
+                    pix = mix(wat, FOG_COL, min(dist * 0.01, 1.0));
+                }
+                else {
+                    // Sky
+                    pix = mix(FOG_COL, SKY_COL, min(cdir.y * 4.0, 1.0));
+                }
+#if ANTIALIAS
+                fragColor.rgb += pix * 0.25;
+                    }
+                }
+#else
+                fragColor.rgb = pix;
+#endif
             }
 
             fixed4 frag(v2f i) : SV_Target
