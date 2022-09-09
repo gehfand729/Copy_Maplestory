@@ -85,7 +85,9 @@ public class MainCamera : MonoBehaviour
 			}
 		}
 #endif
-		// keyboard
+        // keyboard
+
+#if false
 		for(int i = 0; i < kc.Length; i++)
         {
 			if (Input.GetKeyDown(kc[i]))
@@ -103,6 +105,39 @@ public class MainCamera : MonoBehaviour
 				methodKeyboard(iKeystate.Moved, (iKeyboard)(iKeyboard.Left + i));
 			}
         }
+#else
+        int keyDown = 0;
+        int keyUp = 0;
+
+        for (int i = 0; i < kc.Length; i++)
+        {
+			if (Input.GetKeyDown(kc[i]))
+			{
+				int n = (int)Mathf.Pow(2, i);
+				keyboard |= n;
+				keyDown |= n;
+			}
+			else if (Input.GetKeyUp(kc[i]))
+			{
+				int n = (int)Mathf.Pow(2, i);
+                keyboard &= ~n;
+				keyUp |= n;
+			}
+
+			if (keyDown != 0)
+			{
+				methodKeyboard(iKeystate.Began, keyDown);
+			}
+			if(keyboard != 0)
+			{
+                methodKeyboard(iKeystate.Moved, keyboard);
+            }
+			if(keyUp != 0)
+			{
+                methodKeyboard(iKeystate.Ended, keyUp);
+            }
+        }
+#endif
 
 		drawGameHierachy();
 	}

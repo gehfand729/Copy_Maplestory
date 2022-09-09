@@ -66,22 +66,22 @@ public class Field
         tileH = 70;
         tiles = new int[100]
         {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 1, 0, 0, 0, 0, 0, 2, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 4, 0, 0, 0, 0, 0, 3, 0,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
 
         colorTile = new Color[(int)TileAttr.Max]
         {
-            Color.clear, Color.red, Color.blue, Color.gray, Color.yellow
+            Color.green, Color.red, Color.blue, Color.gray, Color.yellow
         };
     }
 
@@ -111,20 +111,6 @@ public class FObject
     public virtual void paint(float dt, iPoint off) { }
 }
 
-// 움직이지 못하게 = 최대 최소값을 사용
-// tile의 각 테두리
-// 좌상- position 우상- position + tileW 좌하 - position + tileH, 우하 - position + tileW + tileH
-// 좌측으로 이동 제한: tilePosition + tileW - PlayerPosition
-// 우측으로 이동 제한: tilePosition - playerRect.x - (PlayerPosition)
-// -> tilePosition - PlayerPosition + (tileW) + (-playerRect.x)
-// 위로 이동 제한: tilePosition + tileH - PlayerPosition
-// 아래로 이동 제한: tilePosition + PlyaerRect.y -PlayerPosition
-// -> tilePosition - PlayerPosition +(tileH) + (playerRect)
-// 매 프레임마다 이동가능한 거리의 최대 최소값을 구해야함(어디서 구하냐)
-// moveSpeed * dt
-
-
-
 public class Player : FObject
 {
     public Player()
@@ -144,62 +130,142 @@ public class Player : FObject
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 
         // draw
-#if false
-        position += v * moveSpeed * dt;
-#else
-        // collision about field
-        if( v.x < 0 )
+        if (v.x < 0)
         {
-            int x = (int)(position.x + rect.origin.x); x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y); y /= Proc.f.tileH;
-            int minX = Proc.f.tileW * x;
-            for(int i=x-1; i>-1; i--)
+            int x = (int)(position.x + rect.origin.x);
+            x /= Proc.f.tileW;
+            int y = (int)(position.y + rect.origin.y);
+            y /= Proc.f.tileH;
+            float minX = 0;
+            for(int i = x - 1; i > -1; i--)
             {
-                if(Proc.f.tiles[Proc.f.tileX*y+i]==1 )
+                bool check = false;
+                for (int j = y; j < (position.y + rect.origin.y + rect.size.height)/ Proc.f.tileH; j++)
                 {
-                    minX = Proc.f.tileW * i;
-                    break;
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    {
+                        minX = Proc.f.tileW * (i + 1);
+                        check = true;
+                        break;
+                    }
                 }
+                if (check)
+                    break;  
             }
             position.x += v.x * moveSpeed * dt;
-            if (position.x < minX)
+            if(position.x < minX)
+            {
                 position.x = minX;
+            }
         }
-        else if ( v.x > 0 )
+        else if (v.x > 0)
         {
-            int x = (int)(position.x + rect.origin.x + rect.size.width); x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y); y /= Proc.f.tileH;
-            int maxX = Proc.f.tileW * (x + 1) - 1;
-            for (int i = x + 1; i < Proc.f.tileX-1; i++)
+            int x = (int)(position.x + rect.origin.x + rect.size.width);
+            x /= Proc.f.tileW;
+            int y = (int)(position.y + rect.origin.y);
+            y /= Proc.f.tileH;
+            float maxX = Proc.f.tileX * Proc.f.tileW;
+            for (int i = x + 1; i < Proc.f.tileX; i++)
             {
-                if (Proc.f.tiles[Proc.f.tileX * y + i] == 1)
+                bool check = false;
+                for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
                 {
-                    maxX = Proc.f.tileW * i - 1;
-                    break;
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    {
+                        maxX = Proc.f.tileW * i;
+                        check = true;
+                        break;
+                    }
                 }
+                if (check)
+                    break;
             }
             position.x += v.x * moveSpeed * dt;
-            if (position.x > maxX)
-                position.x = maxX;
+            if(position.x + rect.origin.x + rect.size.width > maxX)
+            {
+                position.x = maxX - 1 - (rect.origin.x + rect.size.width);
+            }
         }
-#endif
+        if (v.y < 0)
+        {
+            int x = (int)(position.x + rect.origin.x);
+            x /= Proc.f.tileW;
+            int y = (int)(position.y + rect.origin.y);
+            y /= Proc.f.tileH;
+            float minY = 0;
+            for (int j = y - 1; j > -1; j--)
+            {
+                bool check = false;
+                for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
+                {
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    {
+                        minY = Proc.f.tileH * (j + 1);
+                        check = true;
+                        break;
+                    }
+                }
+                if (check)
+                    break;
+            }
+            position.y += v.y * moveSpeed * dt;
+            if (position.y < minY)
+            {
+                position.y = minY;
+            }
+        }
+        else if (v.y > 0)
+        {
+            int x = (int)(position.x + rect.origin.x);
+            x /= Proc.f.tileW;
+            int y = (int)(position.y + rect.origin.y + rect.size.height);
+            y /= Proc.f.tileH;
+            float maxY = Proc.f.tileY * Proc.f.tileH;
+            for (int j = y + 1; j < Proc.f.tileY; j++)
+            {
+                bool check = false;
+                for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
+                {
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    {
+                        maxY = Proc.f.tileH * j;
+                        check = true;
+                        break;
+                    }
+                }
+                if (check)
+                    break;
+            }
+            position.y += v.y * moveSpeed * dt;
+            if (position.y + rect.origin.y + rect.size.height > maxY)
+            {
+                position.y = maxY - 1 - (rect.origin.y + rect.size.height);
+            }
+        }
     }
 
+    private bool CheckKey(int key, iKeyboard ik)
+    {
+        int k = (int)ik;
+        return (key & k) == k;
+    }
 
-    public void keyboard(iKeystate stat, iKeyboard key)
+    public void keyboard(iKeystate stat, int key)
     {
         v = new iPoint(0, 0);
 
-        if (key == iKeyboard.Left)
-            v.x = -1;
-        else if (key == iKeyboard.Right)
-            v.x = +1;
+        if (stat == iKeystate.Moved)
+        {
+            if (CheckKey(key, iKeyboard.Left))
+                v.x = -1;
+            else if (CheckKey(key, iKeyboard.Right))
+                v.x = +1;
 
-        if (key == iKeyboard.Up)
-            v.y = -1;
-        else if (key == iKeyboard.Down)
-            v.y = +1;
-
+            if (CheckKey(key, iKeyboard.Up))
+                v.y = -1;
+            else if (CheckKey(key, iKeyboard.Down))
+                v.y = +1;
+        }
 
         if (stat == iKeystate.Ended)
         {

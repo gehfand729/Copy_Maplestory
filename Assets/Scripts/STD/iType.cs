@@ -17,14 +17,14 @@ namespace STD
 
 	public enum iKeyboard
 	{
-		Left = 0,// a, A, 4, <-
-		Right,
-		Up,
-		Down,
-		Space
+		Left = 1,// a, A, 4, <-
+		Right = 2,
+		Up = 4,
+		Down = 8,
+		Space = 16
 	};
 
-	public delegate void MethodKeyboard(iKeystate stat, iKeyboard key);
+	public delegate void MethodKeyboard(iKeystate stat, int key);
 
 }
 
