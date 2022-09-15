@@ -109,8 +109,8 @@ public class MainCamera : MonoBehaviour
         int keyDown = 0;
         int keyUp = 0;
 
-        for (int i = 0; i < kc.Length; i++)
-        {
+		for (int i = 0; i < kc.Length; i++)
+		{
 			if (Input.GetKeyDown(kc[i]))
 			{
 				int n = (int)Mathf.Pow(2, i);
@@ -120,23 +120,23 @@ public class MainCamera : MonoBehaviour
 			else if (Input.GetKeyUp(kc[i]))
 			{
 				int n = (int)Mathf.Pow(2, i);
-                keyboard &= ~n;
+				keyboard &= ~n;
 				keyUp |= n;
 			}
-
-			if (keyDown != 0)
-			{
-				methodKeyboard(iKeystate.Began, keyDown);
-			}
-			if(keyboard != 0)
-			{
-                methodKeyboard(iKeystate.Moved, keyboard);
-            }
-			if(keyUp != 0)
-			{
-                methodKeyboard(iKeystate.Ended, keyUp);
-            }
+		}
+		if (keyDown != 0)
+		{
+			methodKeyboard(iKeystate.Began, keyDown);
+		}
+		if(keyboard != 0)
+		{
+            methodKeyboard(iKeystate.Moved, keyboard);
         }
+		if(keyUp != 0)
+		{
+            methodKeyboard(iKeystate.Ended, keyUp);
+        }
+        
 #endif
 
 		drawGameHierachy();

@@ -119,10 +119,10 @@ public class Player : FObject
     public Player()
     {
         position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 50, 50);
+        rect = new iRect(-10, -10, 50, 50);
         v = new iPoint(0, 0);
         moveSpeed = 300;
-        gravity = 1200;
+        gravity = 2000;
         jumping = true;
         jumpForce = 0;
 
@@ -137,10 +137,7 @@ public class Player : FObject
 
 #if true
         iPoint v = this.v * moveSpeed;
-        if(jumping)
-        {
-            jumpForce += gravity * dt;
-        }
+        jumpForce += gravity * dt;
         v.y += jumpForce;
 
         if(v.x < 0)
@@ -222,7 +219,10 @@ public class Player : FObject
             }
             yy += v.y * dt;
             if (yy < minY)
+            {
                 yy = minY;
+                jumpForce = 0;
+            }
             position.y = yy - rect.origin.y;
         }
         else if (v.y > 0)
@@ -293,18 +293,12 @@ public class Player : FObject
             if (CheckKey(key, iKeyboard.Space))
             {
                 jumping = true;
-                //jumpForce -= 300;// 두번 들어오는 버그
-                jumpForce = -600;// 두번 들어오는 버그
-                Debug.LogFormat($"jumpForce = {jumpForce}");
-            }
-            if (CheckKey(key, iKeyboard.i))
-            {
-                Debug.Log("test");
+                jumpForce = -700;
             }
         }
 
-        //if (v.x != 0 || v.y != 0)
-        //    v /= v.getLength();
+        if (v.x != 0 || v.y != 0)
+            v /= v.getLength();
     }
 }
 
