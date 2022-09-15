@@ -72,7 +72,7 @@ public class Field
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -152,7 +152,7 @@ public class Player : FObject
             {
                 for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] != 0)
                     {
                         minX = Proc.f.tileW * (i + 1);
                         check = true;
@@ -179,7 +179,7 @@ public class Player : FObject
             {
                 for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] != 0)
                     {
                         maxX = Proc.f.tileW * i - 1;
                         check = true;
@@ -207,9 +207,10 @@ public class Player : FObject
             {
                 for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] != 0)
                     {
-                        minY = Proc.f.tileH * (j + 1);
+                        if (Proc.f.tiles[Proc.f.tileX * j + i] != 2)
+                            minY = Proc.f.tileH * (j + 1);
                         check = true;
                         break;
                     }
@@ -237,7 +238,7 @@ public class Player : FObject
             {
                 for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    if (Proc.f.tiles[Proc.f.tileX * j + i] != 0)
                     {
                         maxY = Proc.f.tileH * j - 1;
                         check = true;
