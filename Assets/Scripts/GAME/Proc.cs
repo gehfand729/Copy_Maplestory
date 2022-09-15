@@ -74,7 +74,7 @@ public class Field
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
@@ -108,25 +108,23 @@ public class FObject
     public iPoint v;
     public float moveSpeed;
     public float gravity;
+    public bool jumping;
+    public float jumpForce;
     
     public virtual void paint(float dt, iPoint off) { }
 }
 
 public class Player : FObject
 {
-    float jumpForce;
-    bool jumping;
-    bool ground;
     public Player()
     {
         position = new iPoint(0, 0);
         rect = new iRect(0, 0, 50, 50);
         v = new iPoint(0, 0);
         moveSpeed = 300;
-        gravity = 30;
-        jumpForce = 3000;
-        jumping = false;
-        ground = false;
+        gravity = 1200;
+        jumping = true;
+        jumpForce = 0;
 
         MainCamera.methodKeyboard += keyboard;
     }
@@ -138,149 +136,23 @@ public class Player : FObject
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 
 #if true
-
-        v.y += gravity * dt;
-        if (jumping)
+        iPoint v = this.v * moveSpeed;
+        if(jumping)
         {
-            v.y -= jumpForce * (1 - dt);
+            jumpForce += gravity * dt;
         }
-        // draw
-        float fX = position.x + rect.origin.x;
-        float fY = position.y + rect.origin.y;
-        if (v.x < 0)
+        v.y += jumpForce;
+
+        if(v.x < 0)
         {
-            int x = (int)(fX);
-            x /= Proc.f.tileW;
-            int y = (int)(fY);
-            y /= Proc.f.tileH;
+            float xx = position.x + rect.origin.x;
+            float yy = position.y + rect.origin.y;
+            int x = (int)xx; x /= Proc.f.tileW;
+            int y = (int)yy; y /= Proc.f.tileH;
             float minX = 0;
+            bool check = false;
             for(int i = x - 1; i > -1; i--)
             {
-                bool check = false;
-                for (int j = y; j < (fY + rect.size.height)/ Proc.f.tileH; j++)
-                {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        minX = Proc.f.tileW * (i + 1);
-                        check = true;
-                        break;
-                    }
-                }
-                if (check)
-                    break;  
-            }
-            fX += v.x * moveSpeed * dt + rect.origin.x;
-            if (fX < minX)
-            {
-                fX = minX;
-            }
-        }
-        else if (v.x > 0)
-        {
-            int x = (int)(fX + rect.size.width);
-            x /= Proc.f.tileW;
-            int y = (int)(fY);
-            y /= Proc.f.tileH;
-            float maxX = Proc.f.tileX * Proc.f.tileW;
-            for (int i = x + 1; i < Proc.f.tileX; i++)
-            {
-                bool check = false;
-                for (int j = y; j < (fY + rect.size.height) / Proc.f.tileH; j++)
-                {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        maxX = Proc.f.tileW * i;
-                        check = true;
-                        break;
-                    }
-                }
-                if (check)
-                    break;
-            }
-            fX += v.x * moveSpeed * dt + rect.origin.x;
-            if (fX + rect.size.width > maxX)
-            {
-                fX = maxX - 1 - (rect.origin.x + rect.size.width);
-            }
-        }
-        if (v.y < 0)
-        {
-            int x = (int)(fX);
-            x /= Proc.f.tileW;
-            int y = (int)(fY);
-            y /= Proc.f.tileH;
-            float minY = 0;
-            for (int j = y - 1; j > -1; j--)
-            {
-                bool check = false;
-                for (int i = x; i < (fX + rect.size.width) / Proc.f.tileW; i++)
-                {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        minY = Proc.f.tileH * (j + 1);
-                        check = true;
-                        break;
-                    }
-                }
-                if (check)
-                    break;
-            }
-            fY += v.y * jumpForce * dt + rect.origin.y;
-            if (fY < minY)
-            {
-                fY = minY;
-            }
-        }
-        else if (v.y > 0)
-        {
-            int x = (int)(fX);
-            x /= Proc.f.tileW;
-            int y = (int)(fY + rect.size.height);
-            y /= Proc.f.tileH;
-            float maxY = Proc.f.tileY * Proc.f.tileH;
-            for (int j = y + 1; j < Proc.f.tileY; j++)
-            {
-                bool check = false;
-                for (int i = x; i < (fX + rect.size.width) / Proc.f.tileW; i++)
-                {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        maxY = Proc.f.tileH * j;
-                        check = true;
-                        break;
-                    }
-                }
-                if (check)
-                    break;
-            }
-            fY += v.y * gravity * dt + rect.origin.y;
-            if (fY + rect.size.height > maxY)
-            {
-                fY = maxY - 1 - (rect.origin.y + rect.size.height);
-            }
-        }
-        position.x = fX;
-        position.y = fY;
-#else
-        if (!ground)
-        {
-            v.y += 1 * dt;
-        }
-        if (jumping)
-        {
-            v.y = -jumpForce;
-        }
-        // draw
-        if (v.x < 0)
-        {
-            int x = (int)(position.x + rect.origin.x);
-            x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y);
-            y /= Proc.f.tileH;
-            float minX = 0;
-            for (int i = x - 1; i > -1; i--)
-            {
-                bool check = false;
                 for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
                 {
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
@@ -293,27 +165,26 @@ public class Player : FObject
                 if (check)
                     break;
             }
-            position.x -= Mathf.Sqrt(Mathf.Pow(v.x * moveSpeed * dt, 2));
-            if (position.x < minX)
-            {
-                position.x = minX;
-            }
+            xx += v.x * dt;
+            if(xx < minX)
+                xx = minX;
+            position.x = xx - rect.origin.x;
         }
         else if (v.x > 0)
         {
-            int x = (int)(position.x + rect.origin.x + rect.size.width);
-            x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y);
-            y /= Proc.f.tileH;
-            float maxX = Proc.f.tileX * Proc.f.tileW;
+            float xx = position.x + rect.origin.x + rect.size.width;
+            float yy = position.y + rect.origin.y;
+            int x = (int)xx; x /= Proc.f.tileW;
+            int y = (int)yy; y /= Proc.f.tileH;
+            float maxX = Proc.f.tileX * Proc.f.tileW - 1;
+            bool check = false;
             for (int i = x + 1; i < Proc.f.tileX; i++)
             {
-                bool check = false;
                 for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
                 {
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
                     {
-                        maxX = Proc.f.tileW * i;
+                        maxX = Proc.f.tileW * i - 1;
                         check = true;
                         break;
                     }
@@ -321,22 +192,22 @@ public class Player : FObject
                 if (check)
                     break;
             }
-            position.x += Mathf.Sqrt(Mathf.Pow(v.x * moveSpeed * dt, 2));
-            if (position.x + rect.origin.x + rect.size.width > maxX)
-            {
-                position.x = maxX - 1 - (rect.origin.x + rect.size.width);
-            }
+            xx += v.x * dt;
+            if (xx > maxX)
+                xx = maxX;
+            position.x = xx - rect.origin.x - rect.size.width;
         }
         if (v.y < 0)
         {
-            int x = (int)(position.x + rect.origin.x);
-            x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y);
-            y /= Proc.f.tileH;
+            float xx = position.x + rect.origin.x;
+            float yy = position.y + rect.origin.y;
+            int x = (int)xx; x /= Proc.f.tileW;
+            int y = (int)yy; y /= Proc.f.tileH;
             float minY = 0;
+            bool check = false;
+
             for (int j = y - 1; j > -1; j--)
             {
-                bool check = false;
                 for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
                 {
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
@@ -349,27 +220,26 @@ public class Player : FObject
                 if (check)
                     break;
             }
-            position.y -= Mathf.Sqrt(Mathf.Pow(v.y * jumpForce * dt, 2));
-            if (position.y < minY)
-            {
-                position.y = minY;
-            }
+            yy += v.y * dt;
+            if (yy < minY)
+                yy = minY;
+            position.y = yy - rect.origin.y;
         }
         else if (v.y > 0)
         {
-            int x = (int)(position.x + rect.origin.x);
-            x /= Proc.f.tileW;
-            int y = (int)(position.y + rect.origin.y + rect.size.height);
-            y /= Proc.f.tileH;
-            float maxY = Proc.f.tileY * Proc.f.tileH;
+            float xx = position.x + rect.origin.x;
+            float yy = position.y + rect.origin.y + rect.size.height;
+            int x = (int)xx; x /= Proc.f.tileW;
+            int y = (int)yy; y /= Proc.f.tileH;
+            float maxY = Proc.f.tileY * Proc.f.tileH - 1;
+            bool check = false;
             for (int j = y + 1; j < Proc.f.tileY; j++)
             {
-                bool check = false;
                 for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
                 {
                     if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
                     {
-                        maxY = Proc.f.tileH * j;
+                        maxY = Proc.f.tileH * j - 1;
                         check = true;
                         break;
                     }
@@ -377,12 +247,14 @@ public class Player : FObject
                 if (check)
                     break;
             }
-            position.y += Mathf.Sqrt(Mathf.Pow( v.y * gravity * dt, 2));
-            if (position.y + rect.origin.y + rect.size.height > maxY)
+            yy += v.y * dt;
+            if (yy > maxY)
             {
-                position.y = maxY - 1 - (rect.origin.y + rect.size.height);
-                //ground = true;
+                jumping = false;
+                jumpForce = 0;
+                yy = maxY;
             }
+            position.y = yy - rect.origin.y - rect.size.height;
         }
 #endif
     }
@@ -395,7 +267,7 @@ public class Player : FObject
 
     public void keyboard(iKeystate stat, int key)
     {
-        v = new iPoint(0, 0);
+        //v = new iPoint(0, 0);
 
         if (stat == iKeystate.Moved)
         {
@@ -409,15 +281,6 @@ public class Player : FObject
             else if (CheckKey(key, iKeyboard.Down))
                 v.y = +1;
         }
-        if (stat == iKeystate.Began)
-        {
-            if (CheckKey(key, iKeyboard.Space))
-            {
-                jumping = true;
-                jumping = false;
-                ground = false;
-            }
-        }
 
         if (stat == iKeystate.Ended)
         {
@@ -425,9 +288,23 @@ public class Player : FObject
             v.y = 0;
         }
 
+        if (stat == iKeystate.Began)
+        {
+            if (CheckKey(key, iKeyboard.Space))
+            {
+                jumping = true;
+                //jumpForce -= 300;// 두번 들어오는 버그
+                jumpForce = -600;// 두번 들어오는 버그
+                Debug.LogFormat($"jumpForce = {jumpForce}");
+            }
+            if (CheckKey(key, iKeyboard.i))
+            {
+                Debug.Log("test");
+            }
+        }
 
-        if (v.x != 0 || v.y != 0)
-            v /= v.getLength();
+        //if (v.x != 0 || v.y != 0)
+        //    v /= v.getLength();
     }
 }
 

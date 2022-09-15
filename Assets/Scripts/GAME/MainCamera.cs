@@ -143,9 +143,10 @@ public class MainCamera : MonoBehaviour
 	}
 
 	int keyboard = 0;
-	KeyCode[] kc = new KeyCode[5] {
+	KeyCode[] kc = new KeyCode[] {
 			KeyCode.LeftArrow, KeyCode.RightArrow,
-			KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Space
+			KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Space,
+			KeyCode.I,
 		};
 
 	public static Vector3 iPointToVector3(iPoint p)

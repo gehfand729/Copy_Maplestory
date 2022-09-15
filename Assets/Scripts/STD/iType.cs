@@ -21,7 +21,8 @@ namespace STD
 		Right = 2,
 		Up = 4,
 		Down = 8,
-		Space = 16
+		Space = 16,
+		i = 32,
 	};
 
 	public delegate void MethodKeyboard(iKeystate stat, int key);
