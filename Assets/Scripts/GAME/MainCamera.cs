@@ -33,7 +33,7 @@ public class MainCamera : MonoBehaviour
 
 		initGameHierachy();
 
-		Fbo.createGameObject("Fbo");
+		Main.createGameObject("Main");
 	}
 
 	void Update()

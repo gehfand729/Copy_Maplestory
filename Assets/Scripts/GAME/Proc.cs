@@ -7,7 +7,7 @@ using STD;
 public class Proc : GObject
 {
     public static Field f;
-    Player p;
+    public Player p;
 
     public Proc()
     {
@@ -54,30 +54,41 @@ public class Field
     public int tileX, tileY;
     public int tileW, tileH;
     public int[] tiles;
-    public iPoint off;
+    public iPoint off, offMin, offMax;
 
     Color[] colorTile;
 
     public Field()
     {
-        tileX = 10;
-        tileY = 10;
+        tileX = 30;
+        tileY = 19;
         tileW = 70;
         tileH = 70;
-        tiles = new int[100]
+        tiles = new int[]
         {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 4, 2, 2, 0, 3, 0, 0, 0,
-            0, 0, 4, 0, 0, 0, 3, 0, 0, 0,
-            0, 0, 4, 1, 1, 1, 3, 0, 0, 0,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,  0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,  0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,  0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,  0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0,  0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,  0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
+        offMin = new iPoint(MainCamera.devWidth- tileW*tileX, MainCamera.devHeight-tileH*tileY);
+        offMax = new iPoint(0, 0);
 
         colorTile = new Color[(int)TileAttr.Max]
         {
@@ -87,6 +98,17 @@ public class Field
 
     public void paint(float dt)
     {
+        off = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
+                - ((Proc)Main.curr).p.position;
+        if (off.x < offMin.x)
+            off.x = offMin.x;
+        else if (off.x > offMax.x)
+            off.x = offMax.x;
+        if (off.y < offMin.y)
+            off.y = offMin.y;
+        else if (off.y > offMax.y)
+            off.y = offMax.y;
+
         int i, tileXY = tileX * tileY;
         for(i = 0; i<tileXY; i++)
         {
@@ -119,7 +141,7 @@ public class Player : FObject
     public Player()
     {
         position = new iPoint(0, 0);
-        rect = new iRect(-10, -10, 50, 50);
+        rect = new iRect(0, 0, 50, 50);
         v = new iPoint(0, 0);
         moveSpeed = 300;
         gravity = 2000;
@@ -139,7 +161,6 @@ public class Player : FObject
         iPoint v = this.v * moveSpeed;
         jumpForce += gravity * dt;
         v.y += jumpForce;
-
         if(v.x < 0)
         {
             float xx = position.x + rect.origin.x;
@@ -148,38 +169,25 @@ public class Player : FObject
             int y = (int)yy; y /= Proc.f.tileH;
             float minX = 0;
             bool check = false;
-            for(int i = x - 1; i > -1; i--)
+
+            float k = (yy + rect.size.height) / Proc.f.tileH;
+            for (int i = x - 1; i > -1; i--)
             {
-                for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
+                for (int j = y; j < k; j++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        minX = Proc.f.tileW * (i + 1);
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 2)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 3)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 4)
-                    {
-                        minX = Proc.f.tileW * (i + 1);
-                        check = true;
-                        break;
-                    }
+                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
+                    if (n == 0) continue;
+                    if ( n == 2 || n == 3) continue;
+                 
+                    minX = Proc.f.tileW * (i + 1);
+                    check = true;
+                    break;
                 }
                 if (check)
                     break;
             }
             xx += v.x * dt;
-            if(xx < minX)
+            if (xx < minX)
                 xx = minX;
             position.x = xx - rect.origin.x;
         }
@@ -191,33 +199,19 @@ public class Player : FObject
             int y = (int)yy; y /= Proc.f.tileH;
             float maxX = Proc.f.tileX * Proc.f.tileW - 1;
             bool check = false;
+
+            float k = (yy + rect.size.height) / Proc.f.tileH;
             for (int i = x + 1; i < Proc.f.tileX; i++)
             {
-                for (int j = y; j < (position.y + rect.origin.y + rect.size.height) / Proc.f.tileH; j++)
+                for (int j = y; j < k; j++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        maxX = Proc.f.tileW * i - 1;
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 2)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 3)
-                    {
-                        maxX = Proc.f.tileW * i - 1;
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 4)
-                    {
-                        check = true;
-                        break;
-                    }
-
+                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
+                    if (n == 0) continue;
+                    if (n == 2 || n == 4) continue;
+                    
+                    maxX = Proc.f.tileW * i - 1;
+                    check = true;
+                    break;
                 }
                 if (check)
                     break;
@@ -236,28 +230,16 @@ public class Player : FObject
             float minY = 0;
             bool check = false;
 
+            float k = (xx + rect.size.width) / Proc.f.tileW;
             for (int j = y - 1; j > -1; j--)
             {
-                for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
+                for (int i = x; i < k; i++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
+                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
+                    if (n == 0) continue;
+                    if (n == 1)
                     {
                         minY = Proc.f.tileH * (j + 1);
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 2)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 3)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 4)
-                    {
                         check = true;
                         break;
                     }
@@ -281,32 +263,19 @@ public class Player : FObject
             int y = (int)yy; y /= Proc.f.tileH;
             float maxY = Proc.f.tileY * Proc.f.tileH - 1;
             bool check = false;
+
+            float k = (xx + rect.size.width) / Proc.f.tileW;
             for (int j = y + 1; j < Proc.f.tileY; j++)
             {
-                for (int i = x; i < (position.x + rect.origin.x + rect.size.width) / Proc.f.tileW; i++)
+                for (int i = x; i < k; i++)
                 {
-                    if (Proc.f.tiles[Proc.f.tileX * j + i] == 1)
-                    {
-                        maxY = Proc.f.tileH * j - 1;
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 2)
-                    {
-                        maxY = Proc.f.tileH * j - 1;
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 3)
-                    {
-                        check = true;
-                        break;
-                    }
-                    else if (Proc.f.tiles[Proc.f.tileX * j + i] == 4)
-                    {
-                        check = true;
-                        break;
-                    }
+                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
+                    if (n == 0) continue;
+                    if (n == 3 || n == 4) continue;
+                 
+                    maxY = Proc.f.tileH * j - 1;
+                    check = true;
+                    break;
                 }
                 if (check)
                     break;
@@ -320,6 +289,7 @@ public class Player : FObject
             }
             position.y = yy - rect.origin.y - rect.size.height;
         }
+        
 #endif
     }
 

@@ -4,12 +4,12 @@ using UnityEngine;
 
 using STD;
 
-public class Fbo : iGUI
+public class Main : iGUI
 {
 	public static GameObject createGameObject(string name)
 	{
 		GameObject go = new GameObject(name);
-		go.AddComponent<Fbo>();
+		go.AddComponent<Main>();
 
 		return go;
 	}
