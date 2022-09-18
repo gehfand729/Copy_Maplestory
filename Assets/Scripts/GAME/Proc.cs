@@ -108,6 +108,7 @@ public class Field
             off.y = offMin.y;
         else if (off.y > offMax.y)
             off.y = offMax.y;
+        
 
         int i, tileXY = tileX * tileY;
         for(i = 0; i<tileXY; i++)
