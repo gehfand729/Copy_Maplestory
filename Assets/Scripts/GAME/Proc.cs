@@ -8,81 +8,101 @@ public class Proc : GObject
 {
     public static Field f;
     public Player p;
-    testUI setting;
 
     public Proc()
     {
         f = new Field();
         p = new Player();
-        setting = new testUI();
+        createPopUI();
+        popUI.show(true);
     }
 
     ~Proc()
     {
-
     }
 
     public override void draw(float dt)
     {
         f.paint(dt);
         p.paint(dt, f.off);
-        setting.paint(dt);
+        drawPopUI(dt);
     }
 
     public override void key(iKeystate stat, iPoint point)
     {
         // ui
+        if (keyPopUI(stat, point))
+            return;
+
+        // f
+        // p
+
         
+    }
+
+    iPopup popUI;
+    void createPopUI()
+    {
+        iPopup pop = new iPopup();
+
+        iImage img = new iImage();
+        for(int i=0; i<4; i++)
+        {
+            iTexture tex = new iTexture(Resources.Load<Texture>("0_0_" + i));
+            img.add(tex);
+        }
+        img.repeatNum = 0;
+        img._frameDt = 0.2f;
+        img.startAnimation();
+        pop.add(img);
+        
+        pop.style = iPopupStyle.zoomRotate;
+        pop.openPoint = new iPoint(0, 0);
+        pop.closePoint = new iPoint(300, 300);
+        popUI = pop;
+    }
+
+    void freePopUI()
+    {
+
+    }
+
+    void drawPopUI(float dt)
+    {
+        popUI.paint(dt);
+    }
+    bool keyPopUI(iKeystate stat, iPoint point)
+    {
+        return false;
     }
 }
 
 public class UI
 {
-    public int uiW, uiH;
-    public int uiX, uiY;
-    public UI()
+    iStrTex tex;
+    public void paint(float dt)
     {
+        iStrTex.runSt();
+        iGUI.instance.setRGBA(1, 1, 1, 1);
 
-    }
+        iGUI.instance.setStringName("BM-JUA");
+        iGUI.instance.setStringSize(50);
+        iGUI.instance.setStringRGBA(1, 1, 0, 1);
+        iGUI.instance.drawString("Hello",MainCamera.devWidth / 2, MainCamera.devHeight / 2, iGUI.VCENTER | iGUI.HCENTER);
 
-    public virtual void paint(float dt){ }
-}
-
-public class testUI : UI
-{
-    public float fontSize;
-    public iRect r;
-    public testUI()
-    {
-        uiW = 300;
-        uiH = 100;
-        uiX = (MainCamera.devWidth - uiW) / 2;
-        uiY = MainCamera.devHeight - uiH;
-        fontSize = 50;
-        iRect r = new iRect(uiX, uiY, uiW, uiH);
-
-        MainCamera.methodMouse += key;
-    }
-    public override void paint(float dt) 
-    {
-        iGUI.instance.setRGBA(1, 0, 1, 1);
-        iGUI.instance.fillRect(uiX, uiY, uiW, uiH);
+        if (tex == null)
+            tex = new iStrTex(methodSt, 100, 120);
+        tex.drawString("Hello", MainCamera.devWidth / 2, MainCamera.devHeight / 2, iGUI.VCENTER | iGUI.HCENTER);
         
-        iGUI.instance.setStringRGBA(0, 0, 0, 1);
-        iGUI.instance.setStringSize(fontSize);
-        iGUI.instance.drawString("test", uiX, uiY);
+
     }
-    public void key(iKeystate stat, iPoint key)
+    void methodSt(iStrTex st)
     {
-        if(stat == iKeystate.Began)
-        {
-            if (r.containPoint(key))
-            {
-                Debug.Log("rectTest{key}");
-            }
-        }
+        Texture t = Resources.Load<Texture>("Map");
+        iGUI.instance.drawImage(t, 0, 0, iGUI.TOP | iGUI.LEFT);
     }
 }
+
 
 enum TileAttr
 {

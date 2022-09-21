@@ -19,6 +19,7 @@ public class GObject:iGUI
 
         load();
         MainCamera.methodMouse = new MethodMouse(key);
+
     }
     //void Update() { }
 
@@ -103,6 +104,7 @@ public class GObject:iGUI
 
         // 1. OnRenderObject
         GL.Clear(true, true, Color.clear);
+        iStrTex.runSt();
         draw(delta);
 
         // 2. onEnd : c.targetTexture = backupRt;

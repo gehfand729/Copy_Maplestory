@@ -43,7 +43,7 @@ namespace STD
 			if (renderTexture == null)
 			{
 				renderTexture = new RenderTexture(
-					MainCamera.devWidth, MainCamera.devHeight, 32,
+					MainCamera.devWidth, MainCamera.devHeight, 32, 
 					RenderTextureFormat.ARGB32);
 			}
 

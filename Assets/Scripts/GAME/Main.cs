@@ -4,14 +4,15 @@ using UnityEngine;
 
 using STD;
 
-public class Main
+public class Main 
 {
     public static Main me;
     public static GObject curr, next;
+
     public Main()
     {
         me = this;
-
+    
         curr = createGameObject("Proc");
         next = null;
     }
@@ -24,7 +25,7 @@ public class Main
     }
 
 
-    private GObject createGameObject(string className)
+    GObject createGameObject(string className)
     {
         GameObject go = new GameObject(className);
         System.Type cls = System.Type.GetType(className);
