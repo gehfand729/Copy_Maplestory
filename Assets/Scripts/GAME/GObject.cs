@@ -116,6 +116,7 @@ public class GObject:iGUI
 #endif
     }
 
+    public virtual void keyboard(iKeystate stat, int key) { }
 
     public virtual void load() { }
     public virtual void draw(float dt) { }

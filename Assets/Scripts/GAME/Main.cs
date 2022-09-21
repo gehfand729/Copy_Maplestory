@@ -12,7 +12,7 @@ public class Main
     {
         me = this;
 
-        curr = createGameObject("Intro");
+        curr = createGameObject("Proc");
         next = null;
     }
     public void reset(string className)
