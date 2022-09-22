@@ -9,35 +9,61 @@ public class Proc : GObject
     public static Field f;
     public Player p;
 
-    public Proc()
+    public override void load()
     {
         f = new Field();
         p = new Player();
         createPopUI();
-        popUI.show(true);
+        //popUI.show(true);
     }
 
-    ~Proc()
-    {
-    }
 
     public override void draw(float dt)
     {
         f.paint(dt);
         p.paint(dt, f.off);
         drawPopUI(dt);
+        {
+            setRGBA(1, 1, 1, 1);
+            Texture tex = Resources.Load<Texture>("bgInven");
+            drawImage(tex, 500, 500, TOP | LEFT);
+            setStringRGBA(0, 0, 0, 1);
+            setStringSize(50);
+            drawString("hi", 500, 500, 1);
+        }
     }
 
     public override void key(iKeystate stat, iPoint point)
     {
+        int i = -1;
         // ui
-        if (keyPopUI(stat, point))
-            return;
+        if(stat == iKeystate.Began)
+        {
+            i = popUI.selected;
+            if (i == -1) return;
+            Debug.Log("test");
 
+        }
         // f
         // p
 
         
+    }
+    public override void keyboard(iKeystate stat, int key)
+    {
+        // ui
+        if (keyPopUI(stat, key))
+        {
+            if (popUI.bShow == false)
+                popUI.show(true);
+            else if(popUI.state == iPopupState.proc)
+                popUI.show(false);
+
+        }
+        // f
+        // p
+
+
     }
 
     iPopup popUI;
@@ -46,17 +72,20 @@ public class Proc : GObject
         iPopup pop = new iPopup();
 
         iImage img = new iImage();
-        for(int i=0; i<4; i++)
-        {
-            iTexture tex = new iTexture(Resources.Load<Texture>("0_0_" + i));
-            img.add(tex);
-        }
-        img.repeatNum = 0;
-        img._frameDt = 0.2f;
-        img.startAnimation();
+        //for(int i=0; i<4; i++)
+        //{
+        //    iTexture tex = new iTexture(Resources.Load<Texture>("0_0_" + i));
+        //    img.add(tex);
+        //}
+        //img.repeatNum = 0;
+        //img._frameDt = 0.2f;
+        //img.startAnimation();
+        iTexture tex = new iTexture(Resources.Load<Texture>("inventory"));
+        img.add(tex);
+        img.scale = 1.2f;
         pop.add(img);
         
-        pop.style = iPopupStyle.zoomRotate;
+        pop.style = iPopupStyle.alpha;
         pop.openPoint = new iPoint(0, 0);
         pop.closePoint = new iPoint(300, 300);
         popUI = pop;
@@ -71,9 +100,17 @@ public class Proc : GObject
     {
         popUI.paint(dt);
     }
-    bool keyPopUI(iKeystate stat, iPoint point)
+    bool keyPopUI(iKeystate stat, int key)
     {
-        return false;
+        bool check = false;
+        if (stat == iKeystate.Began)
+        {
+            if ((key & (int)iKeyboard.i) == (int)iKeyboard.i)
+            {
+                check = true;
+            }
+        }
+        return check;
     }
 }
 

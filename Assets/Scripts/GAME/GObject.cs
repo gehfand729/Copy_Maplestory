@@ -19,7 +19,7 @@ public class GObject:iGUI
 
         load();
         MainCamera.methodMouse = new MethodMouse(key);
-
+        MainCamera.methodKeyboard += new MethodKeyboard(keyboard);
     }
     //void Update() { }
 
@@ -46,6 +46,7 @@ public class GObject:iGUI
     void onPreCull(Camera c)
     {
         preCull();
+       
     }
 
     void OnPreCull()
