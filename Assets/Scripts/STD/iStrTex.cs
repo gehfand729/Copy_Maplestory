@@ -258,4 +258,40 @@ public class iStrTex
 		GUI.matrix = matrixBk;
 	}
 
+	public static void methodCB(iStrTex st, MethodSt method)
+	{
+#if true// #issue
+		if (st.tex.tex != st.texReserve)
+			((RenderTexture)st.tex.tex).Release();
+#endif
+		st.tex.tex = st.texReserve;
+
+		RenderTexture bkT = RenderTexture.active;
+		RenderTexture.active = (RenderTexture)st.tex.tex;
+		//Rect bkR = Camera.main.rect;
+		//Camera.main.rect = new Rect(0, 0, 1, 1);
+		Matrix4x4 matrixBk = GUI.matrix;
+		GUI.matrix = Matrix4x4.TRS(
+			Vector3.zero, Quaternion.identity, new Vector3(1, 1, 1));
+
+		GL.Clear(true, true, Color.clear);// add
+
+		string sn = iGUI.instance.getStringName();
+		float ss = iGUI.instance.getStringSize();
+		Color sc = iGUI.instance.getStringRGBA();
+
+#if true
+		method(st);
+#endif
+
+		iGUI.instance.setStringName(sn);
+		iGUI.instance.setStringSize(ss);
+		iGUI.instance.setStringRGBA(sc.r, sc.g, sc.b, sc.a);
+
+
+		RenderTexture.active = bkT;
+		//Camera.main.rect = bkR;
+		GUI.matrix = matrixBk;
+	}
+
 }

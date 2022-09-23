@@ -9,13 +9,16 @@ namespace STD
 	{
 		int n;
 		int startN, endN;
+		int min, max;
 		float delta, _delta;
 
-		public iNumber(int num = 0, float dt = 0.2f)
+		public iNumber(int _min, int _max, int num = 0, float dt = 0.2f)
 		{
 			n = num;
 			startN = n;
 			endN = n;
+			min = _min;
+			max = _max;
 			_delta = dt;
 			delta = 0.0f;
 		}
@@ -30,6 +33,9 @@ namespace STD
 
 		public void add(int value)
 		{
+			int n_ = n + value;
+			if (n_ > max || n_ < min)
+				return;
 			//n += value;
 			startN = n;
 			endN = n + value;

@@ -13,8 +13,11 @@ public class Proc : GObject
     {
         f = new Field();
         p = new Player();
+
         createPopUI();
-        //popUI.show(true);
+        popInven.show(true);
+        popInfo.show(true);
+        popMiniMap.show(true);
     }
 
 
@@ -22,28 +25,13 @@ public class Proc : GObject
     {
         f.paint(dt);
         p.paint(dt, f.off);
+
         drawPopUI(dt);
-        {
-            setRGBA(1, 1, 1, 1);
-            Texture tex = Resources.Load<Texture>("bgInven");
-            drawImage(tex, 500, 500, TOP | LEFT);
-            setStringRGBA(0, 0, 0, 1);
-            setStringSize(50);
-            drawString("hi", 500, 500, 1);
-        }
     }
 
     public override void key(iKeystate stat, iPoint point)
     {
-        int i = -1;
         // ui
-        if(stat == iKeystate.Began)
-        {
-            i = popUI.selected;
-            if (i == -1) return;
-            Debug.Log("test");
-
-        }
         // f
         // p
 
@@ -52,92 +40,155 @@ public class Proc : GObject
     public override void keyboard(iKeystate stat, int key)
     {
         // ui
-        if (keyPopUI(stat, key))
-        {
-            if (popUI.bShow == false)
-                popUI.show(true);
-            else if(popUI.state == iPopupState.proc)
-                popUI.show(false);
-
-        }
+        //if (keyPopUI(stat, key))
+        //{
+        //    if (popUI.bShow == false)
+        //        popUI.show(true);
+        //    else if(popUI.state == iPopupState.proc)
+        //        popUI.show(false);
+        //
+        //}
         // f
         // p
 
 
     }
 
+
     iPopup popUI;
     void createPopUI()
     {
-        iPopup pop = new iPopup();
-
-        iImage img = new iImage();
-        //for(int i=0; i<4; i++)
-        //{
-        //    iTexture tex = new iTexture(Resources.Load<Texture>("0_0_" + i));
-        //    img.add(tex);
-        //}
-        //img.repeatNum = 0;
-        //img._frameDt = 0.2f;
-        //img.startAnimation();
-        iTexture tex = new iTexture(Resources.Load<Texture>("inventory"));
-        img.add(tex);
-        img.scale = 1.2f;
-        pop.add(img);
-        
-        pop.style = iPopupStyle.alpha;
-        pop.openPoint = new iPoint(0, 0);
-        pop.closePoint = new iPoint(300, 300);
-        popUI = pop;
+        createPopInven();
+        createPopInfo();
+        createPopMiniMap();
     }
-
-    void freePopUI()
-    {
-
-    }
-
     void drawPopUI(float dt)
     {
-        popUI.paint(dt);
+        drawPopInven(dt);
+        drawPopInfo(dt);
+        drawPopMiniMap(dt);
     }
-    bool keyPopUI(iKeystate stat, int key)
+    
+    // Inventory ===============================================================
+    iPopup popInven = null;
+    void createPopInven()
     {
-        bool check = false;
-        if (stat == iKeystate.Began)
-        {
-            if ((key & (int)iKeyboard.i) == (int)iKeyboard.i)
-            {
-                check = true;
-            }
-        }
-        return check;
+        // inventory
+        iPopup pop = new iPopup();
+        iImage img = new iImage();
+        iTexture tex = new iTexture(Resources.Load<Texture>("inventory"));
+        img.add(tex);
+        pop.add(img);
+
+        pop.openPoint = new iPoint(500, 300);
+        pop.closePoint = pop.openPoint;
+
+        popInven = pop;
     }
-}
-
-public class UI
-{
-    iStrTex tex;
-    public void paint(float dt)
+    void drawPopInven(float dt)
     {
-        iStrTex.runSt();
-        iGUI.instance.setRGBA(1, 1, 1, 1);
+        popInven.paint(dt);
+    }
+    void keyboardPopInven(iKeystate stat, int key)
+    {
 
-        iGUI.instance.setStringName("BM-JUA");
-        iGUI.instance.setStringSize(50);
-        iGUI.instance.setStringRGBA(1, 1, 0, 1);
-        iGUI.instance.drawString("Hello",MainCamera.devWidth / 2, MainCamera.devHeight / 2, iGUI.VCENTER | iGUI.HCENTER);
+    }
 
-        if (tex == null)
-            tex = new iStrTex(methodSt, 100, 120);
-        tex.drawString("Hello", MainCamera.devWidth / 2, MainCamera.devHeight / 2, iGUI.VCENTER | iGUI.HCENTER);
+    // Info =====================================================================
+    iPopup popInfo = null;
+    int lv, hp, maxHp, minHp, mp, maxMp, minMp;
+    void createPopInfo()
+    {
+        iPopup pop = new iPopup();
+        iImage img = new iImage();
+                                                
+        lv = 0;
+        hp = maxHp = 100;
+        minHp = 0;
+        mp = maxMp = 100;
+        minMp = 0;
+
+        iStrTex st = new iStrTex(methodStInfo, 250, 100);
+        st.setString(lv + "\n" + hp + "\n" + mp);
+        img.add(st.tex);
+        pop.add(img);
+
+        pop.style = iPopupStyle.alpha;
+        pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 110);
+        pop.closePoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 110);
+
+        popInfo = pop;
+    }
+    void methodStInfo(iStrTex st)
+    {
+        iStrTex.methodCB(st, methodStInfo_);
+    }
+    void methodStInfo_(iStrTex st)
+    {
+        Texture tex = Resources.Load<Texture>("bgInfo");
+        drawImage(tex, 0, 0, 1.2f, 1.2f, TOP|LEFT, 2,0,REVERSE_NONE);
+
+        string[] strs = st.str.Split("\n");
+        int lv = int.Parse(strs[0]);
+        int hp = int.Parse(strs[1]);
+        int mp = int.Parse(strs[2]);
+
+        setStringRGBA(0, 0, 0, 1);
+        drawString("Lv." + lv, 2, 2, TOP | LEFT);
+
+        drawString("Hp:" + hp + "/" + maxHp, 2, 26, TOP | LEFT);
+
+        drawString("Mp:" + mp + "/" + maxMp, 2, 50, TOP | LEFT);
+
+    }
+    void drawPopInfo(float dt)
+    {
+        popInfo.paint(dt);
+    }
+
+    // miniMap =====================================================================
+    iPopup popMiniMap = null;
+    string worldName, mapName;
+
+    void createPopMiniMap()
+    {
+        iPopup pop = new iPopup();
+        iImage img = new iImage();
+
+        worldName = "리프레";
+        mapName = "용의 둥지";
+
+        iStrTex st = new iStrTex(methodStMiniMap, 300, 250);
+        st.setString(worldName + "\n" + mapName);
+
+        img.add(st.tex);
+        pop.add(img);
+
+        popMiniMap = pop;
+    }
+    void methodStMiniMap(iStrTex st)
+    {
+        iStrTex.methodCB(st, methodStMiniMap_);
+    }
+    void methodStMiniMap_(iStrTex st)
+    {
+        Texture tex = Resources.Load<Texture>("miniMap");
+        drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
         
+        string[] str = st.str.Split("\n");
+        string worldName = str[0];
+        string mapName = str[1];
 
+        setStringRGBA(0, 0, 0, 1);
+        setStringSize(20);
+        drawString(worldName, 1, 1, TOP | LEFT);
+        drawString(mapName, 1, 24, TOP | LEFT);
     }
-    void methodSt(iStrTex st)
+    void drawPopMiniMap(float dt)
     {
-        Texture t = Resources.Load<Texture>("Map");
-        iGUI.instance.drawImage(t, 0, 0, iGUI.TOP | iGUI.LEFT);
+        popMiniMap.paint(dt);
     }
+
 }
 
 

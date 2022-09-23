@@ -17,10 +17,11 @@ public class GObject:iGUI
         Camera.onPreRender = onPrev;
         Camera.onPostRender = onEnd;
 
-        load();
+        bLoad = false;
         MainCamera.methodMouse = new MethodMouse(key);
         MainCamera.methodKeyboard += new MethodKeyboard(keyboard);
     }
+    bool bLoad;
     //void Update() { }
 
     RenderTexture texFbo;
@@ -105,6 +106,11 @@ public class GObject:iGUI
 
         // 1. OnRenderObject
         GL.Clear(true, true, Color.clear);
+        if( bLoad==false )
+        {
+            load();
+            bLoad = true;
+        }
         iStrTex.runSt();
         draw(delta);
 
