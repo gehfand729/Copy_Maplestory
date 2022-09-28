@@ -23,6 +23,7 @@ namespace STD
 		Down = 8,
 		Space = 16,
 		i = 32,
+		a = 64,
 	};
 
 	public delegate void MethodKeyboard(iKeystate stat, int key);

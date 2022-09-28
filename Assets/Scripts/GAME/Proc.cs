@@ -15,8 +15,8 @@ public class Proc : GObject
         f = new Field();
         p = new Player();
 
-        texFbo = new RenderTexture(MainCamera.devWidth,
-                            MainCamera.devHeight, 32,
+        texFbo = new RenderTexture(f.tileX * f.tileW,
+                            f.tileY * f.tileH, 32,
                             RenderTextureFormat.ARGB32);
 
 
@@ -28,6 +28,7 @@ public class Proc : GObject
 
     public override void draw(float dt)
     {
+#if false
         texBack = RenderTexture.active;
         RenderTexture.active = texFbo;
 
@@ -38,33 +39,14 @@ public class Proc : GObject
         drawImage(texFbo, 0, 0, TOP | LEFT);
 
         drawPopUI(dt);
-#if false
-        if( stTest==null )
-            stTest = new iStrTex(cbTest, 200, 100);
-        stTest.drawString("MyTest" + nHp, 100, 100, TOP | LEFT);
-        n++;
-        if( n==10 )
-        {
-            n = 0;
-            nHp += 1;
-            if (nHp > Hp)
-                nHp = Hp;
-        }
-    }
-    int nHp = 0, Hp = 1000, n = 0;
-    void cbTest(iStrTex st)
-    {
-        setRGBA(0, 0, 0, 1);
-        fillRect(0, 0, 200, 100);
-
-        setRGBA(1, 0, 0, 1);
-        float r = 1  - 1.0f * nHp / Hp;
-        fillRect(5, 5, 190 * r, 90);
-
-        setStringName("BM-JUA");
-        setStringSize(20);
-        setStringRGBA(1, 1, 1, 1);
-        drawString(nHp  + " / " + Hp, 100, 50, VCENTER|HCENTER);
+#else
+        //texBack = RenderTexture.active;
+        //RenderTexture.active = texFbo;
+        //RenderTexture.active = texBack;
+        f.paint(dt);
+        p.paint(dt, f.off);
+        drawImage(texFbo, 0, 0, TOP | LEFT);
+        drawPopUI(dt);
 #endif
     }
 
@@ -89,6 +71,11 @@ public class Proc : GObject
                     popInven.show(true);
                 else if (popInven.state == iPopupState.proc)
                     popInven.show(false);
+            }
+            if((key & (int)iKeyboard.a) == (int)(iKeyboard.a))
+            {
+                hp -= 10;
+                mp -= 10;
             }
         }
         // f
@@ -146,6 +133,11 @@ public class Proc : GObject
 
     }
 
+    void wheelPopInven(iPoint wheel)
+    {
+
+    }
+
     void moveInven(iPoint point)
     {
         offInven = point;
@@ -153,7 +145,8 @@ public class Proc : GObject
 
     // Info =====================================================================
     iPopup popInfo = null;
-    int lv, hp, maxHp, minHp, mp, maxMp, minMp;
+    int lv, hp, maxHp, minHp, mp, maxMp, minMp, _hp;
+    iStrTex stInfo;
     void createPopInfo()
     {
         iPopup pop = new iPopup();
@@ -161,13 +154,13 @@ public class Proc : GObject
                                                 
         lv = 0;
         hp = maxHp = 100;
-        minHp = 0;
+        minHp = _hp = 0;
         mp = maxMp = 100;
         minMp = 0;
 
-        iStrTex st = new iStrTex(methodStInfo, 250, 100);
-        st.setString(lv + "\n" + hp + "\n" + mp);
-        img.add(st.tex);
+
+        stInfo = new iStrTex(methodStInfo, 250, 100);
+        img.add(stInfo.tex);
         pop.add(img);
 
         pop.style = iPopupStyle.alpha;
@@ -183,8 +176,38 @@ public class Proc : GObject
 
         string[] strs = st.str.Split("\n");
         int lv = int.Parse(strs[0]);
-        int hp = int.Parse(strs[1]);
-        int mp = int.Parse(strs[2]);
+        float hp = int.Parse(strs[1]);
+        float mp = int.Parse(strs[2]);
+
+        if(hp < minHp)
+        {
+            hp = minHp;
+        }
+        if (hp > maxHp)
+        {
+            hp = maxHp;
+        }
+        if (mp < minMp)
+        {
+            mp = minMp;
+        }
+        if (mp > maxMp)
+        {   
+            mp = maxMp;
+        }
+
+#if true
+        float rHp = hp / maxHp;
+        float rMp = mp / maxMp;
+        setRGBA(1, 0, 0, 1);
+        fillRect(42, 26, 200 * rHp, 20);
+
+
+        setRGBA(0, 0, 1, 1);
+        fillRect(42, 50, 200 * rMp, 20);
+        
+#else
+#endif
 
         setStringRGBA(0, 0, 0, 1);
         drawString("Lv." + lv, 2, 2, TOP | LEFT);
@@ -196,11 +219,16 @@ public class Proc : GObject
     }
     void drawPopInfo(float dt)
     {
+        stInfo.setString(lv + "\n" + hp + "\n" + mp);
+
         popInfo.paint(dt);
     }
 
     // miniMap =====================================================================
     iPopup popMiniMap = null;
+    iStrTex stMiniMap;
+    iPoint pp;
+
     string worldName, mapName;
 
     float miniMapW, miniMapH;
@@ -223,10 +251,10 @@ public class Proc : GObject
         miniMapW = f.tileX * miniTileW;
         miniMapH = f.tileY * miniTileH;
 
-        iStrTex st = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
-        st.setString(worldName + "\n" + mapName);
+        stMiniMap = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
+        stMiniMap.setString(worldName + "\n" + mapName);
 
-        img.add(st.tex);
+        img.add(stMiniMap.tex);
         pop.add(img);
 
         popMiniMap = pop;
@@ -248,17 +276,35 @@ public class Proc : GObject
         //   position + off
         // 플레이어 rect 크기
 
-#if false
-        int i, tileXY = f.tileX * f.tileY;
-        for(i = 0; i < tileXY; i++)
+
+#if true
+        for(int i = 0; i < f.tileX * f.tileY; i++)
         {
             float x = miniTileW * (i % f.tileX);
             float y = miniTileH * (i / f.tileX);
             int t = f.tiles[i];
             Color c = f.colorTile[t];
-            instance.setRGBA(c.r, c.g, c.b, c.a);
-            instance.fillRect(x + 5, y + 50, miniTileW, miniTileH);
+            if(t != 0)
+            {
+                setRGBA(c.r, c.g, c.b, c.a);
+            }
+            else
+            {
+                setRGBA(1, 1, 1, 0);
+            }
+            fillRect(x + 5, y + 50, miniTileW, miniTileH);
         }
+        setRGBA(0, 0, 0, 1);
+
+        // 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
+        // 주인공 삼각형
+
+        setRGBA(1, 1, 1, 1);
+
+        drawRect(5, 50, miniMapW + 2, miniMapH + 2);
+        setRGBA(1, 1, 1, 1);
+
+
 #else
 #endif
 
@@ -273,7 +319,7 @@ public class Proc : GObject
     {
         popMiniMap.paint(dt);
 
-        drawImage(texFbo, 5, 50, miniRatio, miniRatio, TOP | LEFT, 2, 0, REVERSE_NONE);
+        //drawImage(texFbo, 5, 50, miniRatio, miniRatio, TOP | LEFT, 2, 0, REVERSE_NONE);
 
     }
 
@@ -340,6 +386,7 @@ public class Field
 
     public void paint(float dt)
     {
+
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
                 - ((Proc)Main.curr).p.position;
         iPoint lOff = new iPoint(0, 0);
@@ -590,6 +637,14 @@ public class Monster : FObject
     public delegate void MethodAI(float dt);
 
     MethodAI methodAI = null;
+
+    public Monster()
+    {
+        position = new iPoint(0, 0);
+        rect = new iRect(0, 0, 60, 60);
+        v = new iPoint(0, 0);
+
+    }
 
     public override void paint(float dt, iPoint off)
     {

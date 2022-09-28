@@ -20,6 +20,7 @@ public class GObject:iGUI
         bLoad = false;
         MainCamera.methodMouse = new MethodMouse(key);
         MainCamera.methodKeyboard += new MethodKeyboard(keyboard);
+        MainCamera.methodWheel += new MethodWheel(wheel);
     }
     bool bLoad;
     //void Update() { }
@@ -130,5 +131,6 @@ public class GObject:iGUI
     public virtual void load() { }
     public virtual void draw(float dt) { }
     public virtual void key(iKeystate stat, iPoint point) { }
+    public virtual void wheel(iPoint wheel) { }
 }
 
