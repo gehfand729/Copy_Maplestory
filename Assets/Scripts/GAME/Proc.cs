@@ -8,14 +8,19 @@ public class Proc : GObject
 {
     public static Field f;
     public Player p;
+    RenderTexture texFbo, texBack;
 
     public override void load()
     {
         f = new Field();
         p = new Player();
 
+        texFbo = new RenderTexture(MainCamera.devWidth,
+                            MainCamera.devHeight, 32,
+                            RenderTextureFormat.ARGB32);
+
+
         createPopUI();
-        popInven.show(true);
         popInfo.show(true);
         popMiniMap.show(true);
     }
@@ -23,11 +28,47 @@ public class Proc : GObject
 
     public override void draw(float dt)
     {
+        texBack = RenderTexture.active;
+        RenderTexture.active = texFbo;
+
         f.paint(dt);
         p.paint(dt, f.off);
 
+        RenderTexture.active = texBack;
+        drawImage(texFbo, 0, 0, TOP | LEFT);
+
         drawPopUI(dt);
+#if false
+        if( stTest==null )
+            stTest = new iStrTex(cbTest, 200, 100);
+        stTest.drawString("MyTest" + nHp, 100, 100, TOP | LEFT);
+        n++;
+        if( n==10 )
+        {
+            n = 0;
+            nHp += 1;
+            if (nHp > Hp)
+                nHp = Hp;
+        }
     }
+    int nHp = 0, Hp = 1000, n = 0;
+    void cbTest(iStrTex st)
+    {
+        setRGBA(0, 0, 0, 1);
+        fillRect(0, 0, 200, 100);
+
+        setRGBA(1, 0, 0, 1);
+        float r = 1  - 1.0f * nHp / Hp;
+        fillRect(5, 5, 190 * r, 90);
+
+        setStringName("BM-JUA");
+        setStringSize(20);
+        setStringRGBA(1, 1, 1, 1);
+        drawString(nHp  + " / " + Hp, 100, 50, VCENTER|HCENTER);
+#endif
+    }
+
+    //iStrTex stTest = null;
 
     public override void key(iKeystate stat, iPoint point)
     {
@@ -40,14 +81,16 @@ public class Proc : GObject
     public override void keyboard(iKeystate stat, int key)
     {
         // ui
-        //if (keyPopUI(stat, key))
-        //{
-        //    if (popUI.bShow == false)
-        //        popUI.show(true);
-        //    else if(popUI.state == iPopupState.proc)
-        //        popUI.show(false);
-        //
-        //}
+        if (stat == iKeystate.Began)
+        {
+            if ((key & (int)iKeyboard.i) == (int)(iKeyboard.i))
+            {
+                if (popInven.bShow == false)
+                    popInven.show(true);
+                else if (popInven.state == iPopupState.proc)
+                    popInven.show(false);
+            }
+        }
         // f
         // p
 
@@ -71,12 +114,17 @@ public class Proc : GObject
     
     // Inventory ===============================================================
     iPopup popInven = null;
+    iImage[] invenImg;
+    iPoint offInven;
+    Texture texInven;
+
     void createPopInven()
     {
         // inventory
         iPopup pop = new iPopup();
         iImage img = new iImage();
-        iTexture tex = new iTexture(Resources.Load<Texture>("inventory"));
+        texInven = Resources.Load<Texture>("inventory");
+        iTexture tex = new iTexture(texInven);
         img.add(tex);
         pop.add(img);
 
@@ -91,7 +139,16 @@ public class Proc : GObject
     }
     void keyboardPopInven(iKeystate stat, int key)
     {
+        
+    }
+    void mousePopInven(iKeystate stat, iPoint point)
+    {
 
+    }
+
+    void moveInven(iPoint point)
+    {
+        offInven = point;
     }
 
     // Info =====================================================================
@@ -121,10 +178,6 @@ public class Proc : GObject
     }
     void methodStInfo(iStrTex st)
     {
-        iStrTex.methodCB(st, methodStInfo_);
-    }
-    void methodStInfo_(iStrTex st)
-    {
         Texture tex = Resources.Load<Texture>("bgInfo");
         drawImage(tex, 0, 0, 1.2f, 1.2f, TOP|LEFT, 2,0,REVERSE_NONE);
 
@@ -150,6 +203,11 @@ public class Proc : GObject
     iPopup popMiniMap = null;
     string worldName, mapName;
 
+    float miniMapW, miniMapH;
+    float miniRatio;
+
+    float miniTileW, miniTileH;
+
     void createPopMiniMap()
     {
         iPopup pop = new iPopup();
@@ -158,7 +216,14 @@ public class Proc : GObject
         worldName = "리프레";
         mapName = "용의 둥지";
 
-        iStrTex st = new iStrTex(methodStMiniMap, 300, 250);
+        miniRatio = 0.1f;
+        miniTileW = f.tileW * miniRatio;
+        miniTileH = f.tileH * miniRatio;
+
+        miniMapW = f.tileX * miniTileW;
+        miniMapH = f.tileY * miniTileH;
+
+        iStrTex st = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
         st.setString(worldName + "\n" + mapName);
 
         img.add(st.tex);
@@ -168,10 +233,6 @@ public class Proc : GObject
     }
     void methodStMiniMap(iStrTex st)
     {
-        iStrTex.methodCB(st, methodStMiniMap_);
-    }
-    void methodStMiniMap_(iStrTex st)
-    {
         Texture tex = Resources.Load<Texture>("miniMap");
         drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
         
@@ -179,14 +240,41 @@ public class Proc : GObject
         string worldName = str[0];
         string mapName = str[1];
 
+        // 미니맵은 필드의 전체를 작게 그려놓은 것
+        // 필드의 정보를 가져와야함.
+        // 미니맵의 크기는 필드의 크기에 비례함.
+        // 필드의 크기는 타일수 * 타일 길이
+        // 플레이어 좌표의 구성
+        //   position + off
+        // 플레이어 rect 크기
+
+#if false
+        int i, tileXY = f.tileX * f.tileY;
+        for(i = 0; i < tileXY; i++)
+        {
+            float x = miniTileW * (i % f.tileX);
+            float y = miniTileH * (i / f.tileX);
+            int t = f.tiles[i];
+            Color c = f.colorTile[t];
+            instance.setRGBA(c.r, c.g, c.b, c.a);
+            instance.fillRect(x + 5, y + 50, miniTileW, miniTileH);
+        }
+#else
+#endif
+
         setStringRGBA(0, 0, 0, 1);
         setStringSize(20);
         drawString(worldName, 1, 1, TOP | LEFT);
         drawString(mapName, 1, 24, TOP | LEFT);
+
     }
+
     void drawPopMiniMap(float dt)
     {
         popMiniMap.paint(dt);
+
+        drawImage(texFbo, 5, 50, miniRatio, miniRatio, TOP | LEFT, 2, 0, REVERSE_NONE);
+
     }
 
 }
@@ -210,7 +298,7 @@ public class Field
     public int[] tiles;
     public iPoint off, offMin, offMax;
 
-    Color[] colorTile;
+    public Color[] colorTile;
 
     public Field()
     {

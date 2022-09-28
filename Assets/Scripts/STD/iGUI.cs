@@ -186,6 +186,7 @@ namespace STD
 			drawImage(texDot, x, y, width, height, TOP | LEFT, 2, 0, REVERSE_NONE);
 		}
 
+
 		// ======================================================
 		// image
 		// ======================================================
@@ -347,7 +348,7 @@ namespace STD
 				case VCENTER | RIGHT:	x -= size.x;		y -= size.y / 2; break;
 				case VCENTER | HCENTER: x -= size.x / 2;	y -= size.y / 2; break;
 			}
-			GUI.color = color;// #issue
+			GUI.color = stringColor;// #issue
 			GUI.Label(new Rect(x, y, size.x, size.y), str, style);
 		}
 	}
