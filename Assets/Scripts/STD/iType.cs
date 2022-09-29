@@ -21,7 +21,7 @@ namespace STD
 		Right = 2,
 		Up = 4,
 		Down = 8,
-		Space = 16,
+		alt = 16,
 		i = 32,
 		a = 64,
 	};

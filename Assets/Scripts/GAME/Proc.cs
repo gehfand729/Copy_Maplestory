@@ -8,17 +8,11 @@ public class Proc : GObject
 {
     public static Field f;
     public Player p;
-    RenderTexture texFbo, texBack;
 
     public override void load()
     {
         f = new Field();
         p = new Player();
-
-        texFbo = new RenderTexture(f.tileX * f.tileW,
-                            f.tileY * f.tileH, 32,
-                            RenderTextureFormat.ARGB32);
-
 
         createPopUI();
         popInfo.show(true);
@@ -28,29 +22,11 @@ public class Proc : GObject
 
     public override void draw(float dt)
     {
-#if false
-        texBack = RenderTexture.active;
-        RenderTexture.active = texFbo;
-
         f.paint(dt);
         p.paint(dt, f.off);
-
-        RenderTexture.active = texBack;
-        drawImage(texFbo, 0, 0, TOP | LEFT);
-
         drawPopUI(dt);
-#else
-        //texBack = RenderTexture.active;
-        //RenderTexture.active = texFbo;
-        //RenderTexture.active = texBack;
-        f.paint(dt);
-        p.paint(dt, f.off);
-        drawImage(texFbo, 0, 0, TOP | LEFT);
-        drawPopUI(dt);
-#endif
     }
 
-    //iStrTex stTest = null;
 
     public override void key(iKeystate stat, iPoint point)
     {
@@ -290,7 +266,7 @@ public class Proc : GObject
             }
             else
             {
-                setRGBA(1, 1, 1, 0);
+                setRGBA(0, 0, 0, 1);
             }
             fillRect(x + 5, y + 50, miniTileW, miniTileH);
         }
@@ -315,12 +291,13 @@ public class Proc : GObject
 
     }
 
+    iPoint pPos;
     void drawPopMiniMap(float dt)
     {
         popMiniMap.paint(dt);
-
-        //drawImage(texFbo, 5, 50, miniRatio, miniRatio, TOP | LEFT, 2, 0, REVERSE_NONE);
-
+        setRGBA(1, 1, 0, 1);
+        pPos = p.position * miniRatio;
+        fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
     }
 
 }
@@ -337,6 +314,18 @@ enum TileAttr
     Max
 }
 
+public static Texture CSTT(Sprite sprite)
+{
+    if(sprite.rect.width != sprite.texture.width)
+    {
+        int x = Mathf.FloorToInt(sprite.textureRect.x);
+        int y = Mathf.FloorToInt(sprite.textureRext.y);
+        int width = Mathf.FloorToInt(sprite.textureRect.width);
+        int height = Mathf.FloorToInt(sprite.textureRect.height);
+    }
+}
+// https://202psj.tistory.com/1358
+
 public class Field
 {
     public int tileX, tileY;
@@ -345,13 +334,14 @@ public class Field
     public iPoint off, offMin, offMax;
 
     public Color[] colorTile;
+    Texture fieldTex;
 
     public Field()
     {
         tileX = 30;
         tileY = 19;
-        tileW = 70;
-        tileH = 70;
+        tileW = fieldTex.width;
+        tileH = fieldTex.height;
         tiles = new int[]
         {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -411,6 +401,10 @@ public class Field
             float x = off.x + tileW * (i % tileX);
             float y = off.y + tileH * (i / tileX);
             int t = tiles[i];
+            if(t == 1)
+            {
+                iGUI.instance.drawImage(fieldTex, x, y, iGUI.TOP | iGUI.LEFT);
+            }
             Color c = colorTile[t];
             iGUI.instance.setRGBA(c.r, c.g, c.b, c.a);
             iGUI.instance.fillRect(x, y, tileW, tileH);
@@ -443,6 +437,10 @@ public class Player : FObject
         gravity = 2000;
         jumping = true;
         jumpForce = 0;
+        preHeight = rect.size.height;
+        downHeight = preHeight / 2;
+        preY = rect.origin.y;
+
 
         MainCamera.methodKeyboard += keyboard;
     }
@@ -595,10 +593,14 @@ public class Player : FObject
         return (key & k) == k;
     }
 
+    float preHeight;
+    float downHeight;
+
+    float preY;
+
     public void keyboard(iKeystate stat, int key)
     {
         //v = new iPoint(0, 0);
-
         if (stat == iKeystate.Moved)
         {
             if (CheckKey(key, iKeyboard.Left))
@@ -609,18 +611,27 @@ public class Player : FObject
             if (CheckKey(key, iKeyboard.Up))
                 v.y = -1;
             else if (CheckKey(key, iKeyboard.Down))
-                v.y = +1;
+            {
+                rect.origin.y = downHeight;   
+                rect.size.height = downHeight;
+            }
         }
 
         if (stat == iKeystate.Ended)
         {
+            if (CheckKey(key, iKeyboard.Down))
+            {
+                rect.origin.y = preY;
+                rect.size.height = preHeight;
+            }
             v.x = 0;
             v.y = 0;
+
         }
 
         if (stat == iKeystate.Began)
         {
-            if (CheckKey(key, iKeyboard.Space))
+            if (CheckKey(key, iKeyboard.alt))
             {
                 jumping = true;
                 jumpForce = -700;

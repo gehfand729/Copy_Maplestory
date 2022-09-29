@@ -123,7 +123,7 @@ public class MainCamera : MonoBehaviour
     int keyboard = 0;
     KeyCode[] kc = new KeyCode[] {
             KeyCode.LeftArrow, KeyCode.RightArrow,
-            KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.Space,
+            KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftAlt,
             KeyCode.I, KeyCode.A,
         };
 
