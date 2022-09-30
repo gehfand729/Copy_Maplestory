@@ -211,6 +211,11 @@ namespace STD
 			drawImage(tex, p.x, p.y, sx, sy, anc, 2, 0, REVERSE_NONE);
 		}
 
+		public void drawImage(Texture tex, float x, float y, float sx, float sy, int anc)
+		{
+			drawImage(tex, x, y, sx, sy, anc, 2, 0, REVERSE_NONE);
+		}
+
 		public void drawImage(Texture tex, iPoint p, float sx, float sy, int anc, int xyz, float degree, int reverse)
 		{
 			drawImage(tex, p.x, p.y, sx, sy, anc, xyz, degree, reverse);

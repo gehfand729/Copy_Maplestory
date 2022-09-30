@@ -7,7 +7,6 @@ using STD;
 
 public class Intro : GObject
 {
-
     public override void load()
     {
     }

@@ -13,10 +13,14 @@ public class Proc : GObject
     {
         f = new Field();
         p = new Player();
+        loadMonster();
 
         createPopUI();
         popInfo.show(true);
         popMiniMap.show(true);
+
+        // for testing
+        addMonster(0, new iPoint(600, 900));
     }
 
 
@@ -24,6 +28,7 @@ public class Proc : GObject
     {
         f.paint(dt);
         p.paint(dt, f.off);
+        drawMonster(dt, f.off);
         drawPopUI(dt);
     }
 
@@ -78,6 +83,7 @@ public class Proc : GObject
     // Inventory ===============================================================
     iPopup popInven = null;
     iImage[] invenImg;
+    iImage img;
     iPoint offInven;
     Texture texInven;
 
@@ -102,7 +108,6 @@ public class Proc : GObject
     }
     void keyboardPopInven(iKeystate stat, int key)
     {
-        
     }
     void mousePopInven(iKeystate stat, iPoint point)
     {
@@ -300,6 +305,71 @@ public class Proc : GObject
         fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
     }
 
+    Monster[] _monster;
+    public Monster[] monster;
+    public int monsterNum;
+
+    void loadMonster()
+    {
+        _monster = new Monster[20];
+        for (int i = 0; i < 20; i++)
+            _monster[i] = new Monster();
+
+        monster = new Monster[20];
+        monsterNum = 0;
+    }
+
+    void drawMonster(float dt, iPoint off)
+    {
+        for (int i = 0; i < monsterNum; i++)
+        {
+            monster[i].paint(dt, off);
+            if (monster[i].alive == false)
+            {
+                monsterNum--;
+                monster[i] = monster[monsterNum];
+                i--;
+            }
+        }
+    }
+
+    void addMonster(int index, iPoint p)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            if (_monster[i].alive == false)
+            {
+                _monster[i].alive = true;
+                _monster[i].position = p;
+                // Ã¼·Â ¸¸¶¥
+
+                monster[monsterNum] = _monster[i];
+                monsterNum++;
+                return;
+            }
+        }
+    }
+
+    Monster checkCollision()
+    {
+        iRect src = p.rect;
+        src.origin += p.position;
+
+        iRect dst;
+        for(int i = 0; i<monsterNum ; i++)
+        {
+            Monster m = monster[i];
+            dst = m.rect;
+            dst.origin += m.position;
+
+            if( dst.containRect(src) )
+            {
+                return m;
+            }
+        }
+        return null;
+    }
+
 }
 
 
@@ -314,20 +384,12 @@ enum TileAttr
     Max
 }
 
-public static Texture CSTT(Sprite sprite)
-{
-    if(sprite.rect.width != sprite.texture.width)
-    {
-        int x = Mathf.FloorToInt(sprite.textureRect.x);
-        int y = Mathf.FloorToInt(sprite.textureRext.y);
-        int width = Mathf.FloorToInt(sprite.textureRect.width);
-        int height = Mathf.FloorToInt(sprite.textureRect.height);
-    }
-}
-// https://202psj.tistory.com/1358
 
 public class Field
 {
+    Texture texBg;
+    float ratioW, ratioH;
+
     public int tileX, tileY;
     public int tileW, tileH;
     public int[] tiles;
@@ -338,6 +400,12 @@ public class Field
 
     public Field()
     {
+        texBg = Resources.Load<Texture>("Background");
+        ratioW = 1.0f * MainCamera.devWidth / texBg.width;
+        ratioH = 1.0f * MainCamera.devHeight / texBg.height;
+
+
+        fieldTex = textureFromSprite(Resources.Load<Sprite>("map"));
         tileX = 30;
         tileY = 19;
         tileW = fieldTex.width;
@@ -370,13 +438,32 @@ public class Field
 
         colorTile = new Color[(int)TileAttr.Max]
         {
-            Color.green, Color.red, Color.blue, Color.gray, Color.yellow
+            Color.clear, Color.red, Color.blue, Color.gray, Color.yellow
         };
+
+    }
+
+    public static Texture2D textureFromSprite(Sprite sprite)
+    {
+        if (sprite.rect.width != sprite.texture.width)
+        {
+            Texture2D newText = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
+            Color[] newColors = sprite.texture.GetPixels((int)sprite.textureRect.x,
+                                                         (int)sprite.textureRect.y,
+                                                         (int)sprite.textureRect.width,
+                                                         (int)sprite.textureRect.height);
+            newText.SetPixels(newColors);
+            newText.Apply();
+            return newText;
+        }
+        else
+            return sprite.texture;
     }
 
     public void paint(float dt)
     {
-
+        iGUI.instance.drawImage(texBg, 0, 0, ratioW, ratioH, iGUI.TOP | iGUI.LEFT);
+        
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
                 - ((Proc)Main.curr).p.position;
         iPoint lOff = new iPoint(0, 0);
@@ -394,20 +481,23 @@ public class Field
         else if (off.y > offMax.y)
             off.y = offMax.y;
 
-
         int i, tileXY = tileX * tileY;
         for(i = 0; i<tileXY; i++)
         {
             float x = off.x + tileW * (i % tileX);
             float y = off.y + tileH * (i / tileX);
             int t = tiles[i];
-            if(t == 1)
+            if (t == 1)
             {
+                iGUI.instance.setRGBA(1, 1, 1, 1);
                 iGUI.instance.drawImage(fieldTex, x, y, iGUI.TOP | iGUI.LEFT);
             }
-            Color c = colorTile[t];
-            iGUI.instance.setRGBA(c.r, c.g, c.b, c.a);
-            iGUI.instance.fillRect(x, y, tileW, tileH);
+            else
+            {
+                Color c = colorTile[t];
+                iGUI.instance.setRGBA(c.r, c.g, c.b, c.a);
+                iGUI.instance.fillRect(x, y, tileW, tileH);
+            }
         }
         iGUI.instance.setRGBA(1, 1, 1, 1);
     }
@@ -415,6 +505,7 @@ public class Field
 
 public class FObject
 {
+    public bool alive;
     public iPoint position;
     public iRect rect;
     public iPoint v;
@@ -445,11 +536,14 @@ public class Player : FObject
         MainCamera.methodKeyboard += keyboard;
     }
 
+
     public override void paint(float dt, iPoint off)
     {
         iGUI.instance.setRGBA(1, 1, 1, 1);
         iPoint p = position + rect.origin + off;
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
+
+        //
 
 #if true
         iPoint v = this.v * moveSpeed;
@@ -583,6 +677,7 @@ public class Player : FObject
             }
             position.y = yy - rect.origin.y - rect.size.height;
         }
+
         
 #endif
     }
@@ -641,6 +736,7 @@ public class Player : FObject
         if (v.x != 0 || v.y != 0)
             v /= v.getLength();
     }
+
 }
 
 public class Monster : FObject
@@ -651,8 +747,9 @@ public class Monster : FObject
 
     public Monster()
     {
+        alive = false;
         position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 60, 60);
+        rect = new iRect(-30, -60, 60, 60);
         v = new iPoint(0, 0);
 
     }
@@ -660,8 +757,13 @@ public class Monster : FObject
     public override void paint(float dt, iPoint off)
     {
         // draw
+        iPoint p = position + rect.origin + off;
+        iGUI.instance.setRGBA(0, 0, 0, 1);
+        iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
+
 
         if( methodAI!=null )
             methodAI(dt);
     }
+
 }

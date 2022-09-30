@@ -24,7 +24,7 @@ namespace STD
 						p.y > origin.y + size.height);
 		}
 
-		public bool contianRect(iRect rt)
+		public bool containRect(iRect rt)
 		{
 			return !(	rt.origin.x + rt.size.width < origin.x ||
 						rt.origin.x > origin.x + size.width ||
