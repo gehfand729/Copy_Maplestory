@@ -20,7 +20,7 @@ public class Proc : GObject
         popMiniMap.show(true);
 
         // for testing
-        addMonster(0, new iPoint(600, 900));
+        addMonster(0, new iPoint(600, 1000));
     }
 
 
@@ -30,6 +30,8 @@ public class Proc : GObject
         p.paint(dt, f.off);
         drawMonster(dt, f.off);
         drawPopUI(dt);
+        //for testing
+        checkCollision();
     }
 
 
@@ -92,7 +94,7 @@ public class Proc : GObject
         // inventory
         iPopup pop = new iPopup();
         iImage img = new iImage();
-        texInven = Resources.Load<Texture>("inventory");
+        texInven = Resources.Load<Texture>("invenBg1");
         iTexture tex = new iTexture(texInven);
         img.add(tex);
         pop.add(img);
@@ -140,20 +142,20 @@ public class Proc : GObject
         minMp = 0;
 
 
-        stInfo = new iStrTex(methodStInfo, 250, 100);
+        stInfo = new iStrTex(methodStInfo, 204, 70);
         img.add(stInfo.tex);
         pop.add(img);
 
         pop.style = iPopupStyle.alpha;
-        pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 110);
-        pop.closePoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 110);
+        pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
+        pop.closePoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
 
         popInfo = pop;
     }
     void methodStInfo(iStrTex st)
     {
         Texture tex = Resources.Load<Texture>("bgInfo");
-        drawImage(tex, 0, 0, 1.2f, 1.2f, TOP|LEFT, 2,0,REVERSE_NONE);
+        drawImage(tex, 0, 29, TOP | LEFT);
 
         string[] strs = st.str.Split("\n");
         int lv = int.Parse(strs[0]);
@@ -180,22 +182,25 @@ public class Proc : GObject
 #if true
         float rHp = hp / maxHp;
         float rMp = mp / maxMp;
-        setRGBA(1, 0, 0, 1);
-        fillRect(42, 26, 200 * rHp, 20);
+        tex = Resources.Load<Texture>("hp");
+        drawImage(tex, 25, 28, rHp, 1, TOP | LEFT);
 
+        tex = Resources.Load<Texture>("mp");
+        drawImage(tex, 25, 43, rHp, 1, TOP | LEFT);
 
-        setRGBA(0, 0, 1, 1);
-        fillRect(42, 50, 200 * rMp, 20);
+        tex = Resources.Load<Texture>("infoCover");
+        drawImage(tex, 0, 0, TOP | LEFT);
         
 #else
 #endif
 
         setStringRGBA(0, 0, 0, 1);
-        drawString("Lv." + lv, 2, 2, TOP | LEFT);
-
-        drawString("Hp:" + hp + "/" + maxHp, 2, 26, TOP | LEFT);
-
-        drawString("Mp:" + mp + "/" + maxMp, 2, 50, TOP | LEFT);
+        //drawString("Lv." + lv, 2, 2, TOP | LEFT);
+        //
+        //drawString("Hp:" + hp + "/" + maxHp, 2, 26, TOP | LEFT);
+        //
+        //drawString("Mp:" + mp + "/" + maxMp, 2, 50, TOP | LEFT);
+        setRGBA(1, 1, 1, 1);
 
     }
     void drawPopInfo(float dt)
@@ -305,6 +310,7 @@ public class Proc : GObject
         fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
     }
 
+#if true
     Monster[] _monster;
     public Monster[] monster;
     public int monsterNum;
@@ -350,7 +356,7 @@ public class Proc : GObject
         }
     }
 
-    Monster checkCollision()
+    public Monster checkCollision()
     {
         iRect src = p.rect;
         src.origin += p.position;
@@ -369,7 +375,8 @@ public class Proc : GObject
         }
         return null;
     }
-
+#else
+#endif
 }
 
 
@@ -542,7 +549,6 @@ public class Player : FObject
         iGUI.instance.setRGBA(1, 1, 1, 1);
         iPoint p = position + rect.origin + off;
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-
         //
 
 #if true
@@ -678,7 +684,6 @@ public class Player : FObject
             position.y = yy - rect.origin.y - rect.size.height;
         }
 
-        
 #endif
     }
 
@@ -749,7 +754,7 @@ public class Monster : FObject
     {
         alive = false;
         position = new iPoint(0, 0);
-        rect = new iRect(-30, -60, 60, 60);
+        rect = new iRect(0, 0, 60, 60);
         v = new iPoint(0, 0);
 
     }
@@ -762,7 +767,7 @@ public class Monster : FObject
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 
 
-        if( methodAI!=null )
+        if ( methodAI!=null )
             methodAI(dt);
     }
 
