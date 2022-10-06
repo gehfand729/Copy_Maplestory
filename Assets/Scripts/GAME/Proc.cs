@@ -55,32 +55,36 @@ public class Proc : GObject
                 else if (popInven.state == iPopupState.proc)
                     popInven.show(false);
             }
-            if((key & (int)iKeyboard.a) == (int)(iKeyboard.a))
+            if ((key & (int)iKeyboard.esc) == (int)(iKeyboard.esc))
             {
-                hp -= 10;
-                mp -= 10;
+                if (popSetting.bShow == false)
+                    popSetting.show(true);
+                else if (popSetting.state == iPopupState.proc)
+                    popSetting.show(false);
             }
+
         }
         // f
         // p
 
     }
 
-#if true
     iPopup popUI;
     void createPopUI()
     {
-        createPopInven();
         createPopInfo();
         createPopMiniMap();
+        createPopInven();
+        createPopSetting();
     }
     void drawPopUI(float dt)
     {
-        drawPopInven(dt);
         drawPopInfo(dt);
         drawPopMiniMap(dt);
+        drawPopInven(dt);
+        drawPopSetting(dt);
     }
-    
+
     // Inventory ===============================================================
     iPopup popInven = null;
     iImage[] invenImg;
@@ -127,17 +131,17 @@ public class Proc : GObject
 
     // Info =====================================================================
     iPopup popInfo = null;
-    int lv, hp, maxHp, minHp, mp, maxMp, minMp, _hp;
+    int lv, hp, maxHp, minHp, mp, maxMp, minMp;
     iStrTex stInfo;
     void createPopInfo()
     {
         iPopup pop = new iPopup();
         iImage img = new iImage();
-                                                
+
         lv = 0;
-        hp = p.hp;
+
         maxHp = p.maxHp;
-        minHp = _hp = 0;
+        minHp = 0;
         mp = maxMp = 100;
         minMp = 0;
 
@@ -148,7 +152,7 @@ public class Proc : GObject
 
         pop.style = iPopupStyle.alpha;
         pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
-        pop.closePoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
+        pop.closePoint = pop.openPoint;
 
         popInfo = pop;
     }
@@ -162,7 +166,7 @@ public class Proc : GObject
         float hp = int.Parse(strs[1]);
         float mp = int.Parse(strs[2]);
         //hp = p.hp;
-        if(hp < minHp)
+        if (hp < minHp)
         {
             hp = minHp;
         }
@@ -175,24 +179,21 @@ public class Proc : GObject
             mp = minMp;
         }
         if (mp > maxMp)
-        {   
+        {
             mp = maxMp;
         }
 
-#if true
         float rHp = hp / maxHp;
         float rMp = mp / maxMp;
         tex = Resources.Load<Texture>("hp");
         drawImage(tex, 25, 28, rHp, 1, TOP | LEFT);
 
         tex = Resources.Load<Texture>("mp");
-        drawImage(tex, 25, 43, rHp, 1, TOP | LEFT);
+        drawImage(tex, 25, 43, rMp, 1, TOP | LEFT);
 
         tex = Resources.Load<Texture>("infoCover");
         drawImage(tex, 0, 0, TOP | LEFT);
-        
-#else
-#endif
+
 
         setStringRGBA(0, 0, 0, 1);
         //drawString("Lv." + lv, 2, 2, TOP | LEFT);
@@ -205,7 +206,8 @@ public class Proc : GObject
     }
     void drawPopInfo(float dt)
     {
-      stInfo.setString(lv + "\n" + hp + "\n" + mp);
+        hp = p.hp;
+        stInfo.setString(lv + "\n" + hp + "\n" + mp);
 
         popInfo.paint(dt);
     }
@@ -249,28 +251,18 @@ public class Proc : GObject
     {
         Texture tex = Resources.Load<Texture>("miniMap");
         drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
-        
+
         string[] str = st.str.Split("\n");
         string worldName = str[0];
         string mapName = str[1];
 
-        // 미니맵은 필드의 전체를 작게 그려놓은 것
-        // 필드의 정보를 가져와야함.
-        // 미니맵의 크기는 필드의 크기에 비례함.
-        // 필드의 크기는 타일수 * 타일 길이
-        // 플레이어 좌표의 구성
-        //   position + off
-        // 플레이어 rect 크기
-
-
-#if true
-        for(int i = 0; i < f.tileX * f.tileY; i++)
+        for (int i = 0; i < f.tileX * f.tileY; i++)
         {
             float x = miniTileW * (i % f.tileX);
             float y = miniTileH * (i / f.tileX);
             int t = f.tiles[i];
             Color c = f.colorTile[t];
-            if(t != 0)
+            if (t != 0)
             {
                 setRGBA(c.r, c.g, c.b, c.a);
             }
@@ -290,15 +282,10 @@ public class Proc : GObject
         drawRect(5, 50, miniMapW + 2, miniMapH + 2);
         setRGBA(1, 1, 1, 1);
 
-
-#else
-#endif
-
         setStringRGBA(0, 0, 0, 1);
         setStringSize(20);
         drawString(worldName, 1, 1, TOP | LEFT);
         drawString(mapName, 1, 24, TOP | LEFT);
-
     }
 
     iPoint pPos;
@@ -309,8 +296,50 @@ public class Proc : GObject
         pPos = p.position * miniRatio;
         fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
     }
-#endif
-#if true
+    // popSetting ====================================================
+    iPopup popSetting;
+    iStrTex stSetting;
+    iImage[] imgSettingBtn;
+    void createPopSetting()
+    {
+        iPopup pop = new iPopup();
+        iTexture tex = new iTexture(Resources.Load<Texture>("SettingBg"));
+        iImage img = new iImage();
+
+        img.add(tex);
+        pop.add(img);
+
+        imgSettingBtn = new iImage[1];
+        string[] strSettingBtn = new string[]
+        {
+            "처음으로",
+        };
+
+        for(int i =0; i < strSettingBtn.Length; i++)
+        {
+            img = new iImage();
+            for(int j =0;j<)
+        }
+
+        pop.openPoint = new iPoint(200, 150);
+        pop.closePoint = pop.openPoint;
+        popSetting = pop;
+    }
+    void methodStSetting(iStrTex st)
+    {
+        Texture tex = Resources.Load<Texture>("SettingBg");
+        drawImage(tex, 0, 0, TOP | LEFT);
+
+        string[] str = st.str.Split("\n");
+        string test = str[0];
+
+    }
+    void drawPopSetting(float dt)
+    {
+        popSetting.paint(dt);
+    }
+
+    // mob ========================================================
     Monster[] _monster;
     public static Monster[] monster;
     public static int monsterNum;
@@ -355,287 +384,8 @@ public class Proc : GObject
             }
         }
     }
-
-
-#else
-#endif
 }
 
-#if false
-public class UI : iGUI
-{
-    public UI()
-    {
-        popInfo.show(true);
-        popMiniMap.show(true);
-    }
-    public void paint(float dt)
-    {
-        drawPopUI(dt);
-    }
-
-    iPopup popUI;
-    public void createPopUI()
-    {
-        createPopInven();
-        createPopInfo();
-        createPopMiniMap();
-    }
-    void drawPopUI(float dt)
-    {
-        drawPopInven(dt);
-        drawPopInfo(dt);
-        drawPopMiniMap(dt);
-    }
-
-    // Inventory ===============================================================
-    iPopup popInven = null;
-    iImage[] invenImg;
-    iImage img;
-    iPoint offInven;
-    Texture texInven;
-
-    void createPopInven()
-    {
-        // inventory
-        iPopup pop = new iPopup();
-        iImage img = new iImage();
-        texInven = Resources.Load<Texture>("invenBg1");
-        iTexture tex = new iTexture(texInven);
-        img.add(tex);
-        pop.add(img);
-
-        pop.openPoint = new iPoint(500, 300);
-        pop.closePoint = pop.openPoint;
-
-        popInven = pop;
-    }
-    void drawPopInven(float dt)
-    {
-        popInven.paint(dt);
-    }
-    void keyboardPopInven(iKeystate stat, int key)
-    {
-    }
-    void mousePopInven(iKeystate stat, iPoint point)
-    {
-
-    }
-
-    void wheelPopInven(iPoint wheel)
-    {
-
-    }
-
-    void moveInven(iPoint point)
-    {
-        offInven = point;
-    }
-
-    // Info =====================================================================
-    iPopup popInfo = null;
-    int lv, hp, maxHp, minHp, mp, maxMp, minMp, _hp;
-    iStrTex stInfo;
-    void createPopInfo()
-    {
-        iPopup pop = new iPopup();
-        iImage img = new iImage();
-
-        lv = 0;
-        hp = maxHp = 100;
-        minHp = _hp = 0;
-        mp = maxMp = 100;
-        minMp = 0;
-
-
-        stInfo = new iStrTex(methodStInfo, 204, 70);
-        img.add(stInfo.tex);
-        pop.add(img);
-
-        pop.style = iPopupStyle.alpha;
-        pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
-        pop.closePoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
-
-        popInfo = pop;
-    }
-    void methodStInfo(iStrTex st)
-    {
-        Texture tex = Resources.Load<Texture>("bgInfo");
-        drawImage(tex, 0, 29, TOP | LEFT);
-
-        string[] strs = st.str.Split("\n");
-        int lv = int.Parse(strs[0]);
-        float hp = int.Parse(strs[1]);
-        float mp = int.Parse(strs[2]);
-
-        if (hp < minHp)
-        {
-            hp = minHp;
-        }
-        if (hp > maxHp)
-        {
-            hp = maxHp;
-        }
-        if (mp < minMp)
-        {
-            mp = minMp;
-        }
-        if (mp > maxMp)
-        {
-            mp = maxMp;
-        }
-
-#if true
-        float rHp = hp / maxHp;
-        float rMp = mp / maxMp;
-        tex = Resources.Load<Texture>("hp");
-        drawImage(tex, 25, 28, rHp, 1, TOP | LEFT);
-
-        tex = Resources.Load<Texture>("mp");
-        drawImage(tex, 25, 43, rHp, 1, TOP | LEFT);
-
-        tex = Resources.Load<Texture>("infoCover");
-        drawImage(tex, 0, 0, TOP | LEFT);
-
-#else
-#endif
-
-        setStringRGBA(0, 0, 0, 1);
-        //drawString("Lv." + lv, 2, 2, TOP | LEFT);
-        //
-        //drawString("Hp:" + hp + "/" + maxHp, 2, 26, TOP | LEFT);
-        //
-        //drawString("Mp:" + mp + "/" + maxMp, 2, 50, TOP | LEFT);
-        setRGBA(1, 1, 1, 1);
-
-    }
-    void drawPopInfo(float dt)
-    {
-        stInfo.setString(lv + "\n" + hp + "\n" + mp);
-
-        popInfo.paint(dt);
-    }
-
-    // miniMap =====================================================================
-    iPopup popMiniMap = null;
-    iStrTex stMiniMap;
-    iPoint pp;
-
-    string worldName, mapName;
-
-    float miniMapW, miniMapH;
-    float miniRatio;
-
-    float miniTileW, miniTileH;
-
-    void createPopMiniMap()
-    {
-        iPopup pop = new iPopup();
-        iImage img = new iImage();
-
-        worldName = "리프레";
-        mapName = "용의 둥지";
-
-        miniRatio = 0.1f;
-        miniTileW = Proc.f.tileW * miniRatio;
-        miniTileH = Proc.f.tileH * miniRatio;
-
-        miniMapW = Proc.f.tileX * miniTileW;
-        miniMapH = Proc.f.tileY * miniTileH;
-
-        stMiniMap = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
-        stMiniMap.setString(worldName + "\n" + mapName);
-
-        img.add(stMiniMap.tex);
-        pop.add(img);
-
-        popMiniMap = pop;
-    }
-    void methodStMiniMap(iStrTex st)
-    {
-        Texture tex = Resources.Load<Texture>("miniMap");
-        drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
-
-        string[] str = st.str.Split("\n");
-        string worldName = str[0];
-        string mapName = str[1];
-
-        // 미니맵은 필드의 전체를 작게 그려놓은 것
-        // 필드의 정보를 가져와야함.
-        // 미니맵의 크기는 필드의 크기에 비례함.
-        // 필드의 크기는 타일수 * 타일 길이
-        // 플레이어 좌표의 구성
-        //   position + off
-        // 플레이어 rect 크기
-
-
-#if true
-        for (int i = 0; i < Proc.f.tileX * Proc.f.tileY; i++)
-        {
-            float x = miniTileW * (i % Proc.f.tileX);
-            float y = miniTileH * (i / Proc.f.tileX);
-            int t = Proc.f.tiles[i];
-            Color c = Proc.f.colorTile[t];
-            if (t != 0)
-            {
-                setRGBA(c.r, c.g, c.b, c.a);
-            }
-            else
-            {
-                setRGBA(0, 0, 0, 1);
-            }
-            fillRect(x + 5, y + 50, miniTileW, miniTileH);
-        }
-        setRGBA(0, 0, 0, 1);
-
-        // 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
-        // 주인공 삼각형
-
-        setRGBA(1, 1, 1, 1);
-
-        drawRect(5, 50, miniMapW + 2, miniMapH + 2);
-        setRGBA(1, 1, 1, 1);
-
-
-#else
-#endif
-
-        setStringRGBA(0, 0, 0, 1);
-        setStringSize(20);
-        drawString(worldName, 1, 1, TOP | LEFT);
-        drawString(mapName, 1, 24, TOP | LEFT);
-
-    }
-
-    iPoint pPos;
-    void drawPopMiniMap(float dt)
-    {
-        popMiniMap.paint(dt);
-        setRGBA(1, 1, 0, 1);
-        pPos = p.position * miniRatio;
-        fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
-    }
-
-    public void keyBoard(iKeystate stat, int key)
-    {
-        if (stat == iKeystate.Began)
-        {
-            if ((key & (int)iKeyboard.i) == (int)(iKeyboard.i))
-            {
-                if (popInven.bShow == false)
-                    popInven.show(true);
-                else if (popInven.state == iPopupState.proc)
-                    popInven.show(false);
-            }
-            if ((key & (int)iKeyboard.a) == (int)(iKeyboard.a))
-            {
-                hp -= 10;
-                mp -= 10;
-            }
-        }
-    }
-}
-#endif
 
 enum TileAttr
 {
@@ -780,43 +530,19 @@ public class FObject
 
     public int hp, maxHp, ap;
     
-    public virtual void paint(float dt, iPoint off) { }
-}
-
-public class Player : FObject
-{
-    public Player()
+    public FObject()
     {
-        maxHp = 100;
-        hp = maxHp;
-        position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 50, 50);
-        v = new iPoint(0, 0);
-        moveSpeed = 300;
         gravity = 2000;
-        jumping = true;
-        jumpForce = 0;
-        preHeight = rect.size.height;
-        downHeight = preHeight / 2;
-        preY = rect.origin.y;
-
-
-        MainCamera.methodKeyboard += keyboard;
     }
 
+    public virtual void attack() { }
 
-    public override void paint(float dt, iPoint off)
+    public void move(float dt) 
     {
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-        iPoint p = position + rect.origin + off;
-        iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-        //
-
-#if true
         iPoint v = this.v * moveSpeed;
         jumpForce += gravity * dt;
         v.y += jumpForce;
-        if(v.x < 0)
+        if (v.x < 0)
         {
             float xx = position.x + rect.origin.x;
             float yy = position.y + rect.origin.y;
@@ -832,8 +558,8 @@ public class Player : FObject
                 {
                     int n = Proc.f.tiles[Proc.f.tileX * j + i];
                     if (n == 0) continue;
-                    if ( n == 2 || n == 3) continue;
-                 
+                    if (n == 2 || n == 3) continue;
+
                     minX = Proc.f.tileW * (i + 1);
                     check = true;
                     break;
@@ -863,7 +589,7 @@ public class Player : FObject
                     int n = Proc.f.tiles[Proc.f.tileX * j + i];
                     if (n == 0) continue;
                     if (n == 2 || n == 4) continue;
-                    
+
                     maxX = Proc.f.tileW * i - 1;
                     check = true;
                     break;
@@ -927,7 +653,7 @@ public class Player : FObject
                     int n = Proc.f.tiles[Proc.f.tileX * j + i];
                     if (n == 0) continue;
                     if (n == 3 || n == 4) continue;
-                 
+
                     maxY = Proc.f.tileH * j - 1;
                     check = true;
                     break;
@@ -944,14 +670,56 @@ public class Player : FObject
             }
             position.y = yy - rect.origin.y - rect.size.height;
         }
+    }
+    public virtual void paint(float dt, iPoint off) { }
+}
+
+public class Player : FObject
+{
+    public Player()
+    {
+        maxHp = 100;
+        hp = maxHp;
+        position = new iPoint(0, 0);
+        rect = new iRect(0, 0, 50, 50);
+        v = new iPoint(0, 0);
+        moveSpeed = 300;
+        
+        jumping = true;
+        jumpForce = 0;
+        preHeight = rect.size.height;
+        downHeight = preHeight / 2;
+        preY = rect.origin.y;
+
+
+        MainCamera.methodKeyboard += keyboard;
+    }
+
+
+    float t = 0;
+    float cInterval = 2;
+    public override void paint(float dt, iPoint off)
+    {
+        iGUI.instance.setRGBA(1, 1, 1, 1);
+        iPoint p = position + rect.origin + off;
+        iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
+
+        move(dt);
+
         Monster m = checkCollision();
+        t += dt;
         if(m != null)
         {
-            hp -= m.ap;
-            Debug.Log(hp);
+            if (t > cInterval)
+            {
+                if (hp > 0)
+                    hp -= m.ap;
+                t = 0;
+            }
         }
-#endif
     }
+
+
 
     private bool CheckKey(int key, iKeyboard ik)
     {
@@ -1052,18 +820,11 @@ public class Monster : FObject
         iPoint p = position + rect.origin + off;
         iGUI.instance.setRGBA(0, 0, 0, 1);
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-
+        
+        move(dt);
 
         if ( methodAI!=null )
             methodAI(dt);
     }
 
-}
-
-public class Mushroom : Monster
-{
-    public Mushroom()
-    {
-        ap = 10;
-    }
 }
