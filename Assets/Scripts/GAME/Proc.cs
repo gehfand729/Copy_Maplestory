@@ -299,7 +299,7 @@ public class Proc : GObject
     // popSetting ====================================================
     iPopup popSetting;
     iStrTex stSetting;
-    iImage[] imgSettingBtn;
+    iImage imgSettingBtn;
     void createPopSetting()
     {
         iPopup pop = new iPopup();
@@ -309,27 +309,25 @@ public class Proc : GObject
         img.add(tex);
         pop.add(img);
 
-        imgSettingBtn = new iImage[1];
-        string[] strSettingBtn = new string[]
-        {
-            "처음으로",
-        };
-
-        for(int i =0; i < strSettingBtn.Length; i++)
-        {
-            img = new iImage();
-            for(int j =0;j<)
-        }
+        string strBtn = "처음으로";
+        img = new iImage();
+        stSetting = new iStrTex(methodStSetting, 500, 300);
+        stSetting.setString(strBtn +"\n");
+        img.add(stSetting.tex);
+        pop.add(img);
 
         pop.openPoint = new iPoint(200, 150);
         pop.closePoint = pop.openPoint;
         popSetting = pop;
+        imgSettingBtn = img;
     }
     void methodStSetting(iStrTex st)
     {
         Texture tex = Resources.Load<Texture>("SettingBg");
-        drawImage(tex, 0, 0, TOP | LEFT);
-
+        setRGBA(0, 0, 0, 1);
+        setLineWidth(4);
+        setRGBA(1, 1, 1, 1);
+        drawImage(tex, stSetting.wid/2, stSetting.hei/2, VCENTER | HCENTER);
         string[] str = st.str.Split("\n");
         string test = str[0];
 

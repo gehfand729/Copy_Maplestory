@@ -18,9 +18,6 @@ public class GObject:iGUI
         Camera.onPostRender = onEnd;
 
         bLoad = false;
-        MainCamera.methodMouse = new MethodMouse(key);
-        MainCamera.methodKeyboard += new MethodKeyboard(keyboard);
-        MainCamera.methodWheel += new MethodWheel(wheel);
     }
     bool bLoad;
     //void Update() { }
@@ -110,6 +107,9 @@ public class GObject:iGUI
         if( bLoad==false )
         {
             load();
+            MainCamera.methodMouse = new MethodMouse(key);
+            MainCamera.methodKeyboard += new MethodKeyboard(keyboard);
+            MainCamera.methodWheel += new MethodWheel(wheel);
             bLoad = true;
         }
         iStrTex.runSt();

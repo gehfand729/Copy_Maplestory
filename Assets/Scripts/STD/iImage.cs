@@ -19,6 +19,9 @@ namespace STD
 		public float frameDt, _frameDt;
 		public float scale;
 
+		public bool select;
+		public float selectDt, _selectDt, selectScale;
+
 		public iImage()
 		{
 			listTex = new List<iTexture>();
@@ -33,6 +36,11 @@ namespace STD
 			_frameDt = 0.0167f;// 1 / 60
 			frameDt = 0.0f;
 			scale = 1.0f;
+
+			select = false;
+			_selectDt = 0.2f;
+			selectDt = 0.0f;
+			selectScale = -0.2f;
 		}
 
 		public iImage clone()
@@ -102,12 +110,29 @@ namespace STD
 			Texture t = tex.tex;
 			//iGUI.instance.drawImage(t, position + off, iGUI.TOP | iGUI.LEFT);
 			off += position;
-			if( scale!=1.0f )
-			{
-				off.x += (1 - scale) * t.width / 2;
-				off.y += (1 - scale) * t.height / 2;
+
+			float s = 1.0f;
+			if( select )
+            {
+				selectDt += dt;
+				if( selectDt > _selectDt)
+					selectDt = _selectDt;
+            }
+            else
+            {
+				selectDt -= dt;
+				if (selectDt < 0)
+					selectDt = 0;
 			}
-			iGUI.instance.drawImage(t, off.x, off.y, scale, scale,
+			s = 1 + selectScale * selectDt / _selectDt;
+			float ss = scale * s;
+
+			if ( ss!=1.0f )
+			{
+				off.x += (1 - ss) * t.width / 2;
+				off.y += (1 - ss) * t.height / 2;
+			}
+			iGUI.instance.drawImage(t, off.x, off.y, ss, ss,
 				iGUI.TOP | iGUI.LEFT, 2, 0, iGUI.REVERSE_NONE);
 		}
 
