@@ -179,7 +179,8 @@ public class Intro : GObject
                 if( pop.selected !=j )
                 {
                     pop.selected = j;
-                    Debug.Log(pop.selected!=-1 ? "선택음" : "췻음");
+                    Debug.Log($"iLength is {imgBtn.Length}");
+                    Debug.Log(pop.selected!=-1 ? i + "선택음"  : i + "췻음");
                 }
 
                 break;

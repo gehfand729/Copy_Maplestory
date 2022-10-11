@@ -796,6 +796,11 @@ public class Player : FObject
 
 }
 
+enum MobState
+{
+
+};
+
 public class Monster : FObject
 {
     public delegate void MethodAI(float dt);
@@ -823,6 +828,13 @@ public class Monster : FObject
 
         if ( methodAI!=null )
             methodAI(dt);
+    }
+
+    public void mobAI(float dt)
+    {
+        //for (int i =0; i < )
+        v.x = +1;
+        
     }
 
 }
