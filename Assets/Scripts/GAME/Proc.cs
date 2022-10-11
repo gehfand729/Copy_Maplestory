@@ -22,7 +22,7 @@ public class Proc : GObject
         popMiniMap.show(true);
 
         // for testing
-        addMonster(0, new iPoint(600, 1000));
+        addMonster(0, new iPoint(4 * f.tileW, 10 * f.tileH));
     }
 
 
@@ -392,6 +392,7 @@ enum TileAttr
     canUp,
     canLeft,
     canRight,
+    mobCant,
 
     Max
 }
@@ -428,15 +429,15 @@ public class Field
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
@@ -450,7 +451,7 @@ public class Field
 
         colorTile = new Color[(int)TileAttr.Max]
         {
-            Color.clear, Color.red, Color.blue, Color.gray, Color.yellow
+            Color.clear, Color.red, Color.blue, Color.gray, Color.yellow,Color.clear
         };
 
     }
@@ -526,6 +527,8 @@ public class FObject
     public bool jumping;
     public float jumpForce;
 
+    public bool block;
+
     public int hp, maxHp, ap;
     
     public FObject()
@@ -567,7 +570,12 @@ public class FObject
             }
             xx += v.x * dt;
             if (xx < minX)
+            {
                 xx = minX;
+                block = true;
+            }
+            else
+                block = false;
             position.x = xx - rect.origin.x;
         }
         else if (v.x > 0)
@@ -597,7 +605,12 @@ public class FObject
             }
             xx += v.x * dt;
             if (xx > maxX)
+            {
                 xx = maxX;
+                block = true;
+            }
+            else
+                block = false;
             position.x = xx - rect.origin.x - rect.size.width;
         }
         if (v.y < 0)
@@ -798,7 +811,11 @@ public class Player : FObject
 
 enum MobState
 {
-
+    Idle = 0,
+    Move,
+    Attack,
+    Damaged,
+    Die,
 };
 
 public class Monster : FObject
@@ -806,6 +823,7 @@ public class Monster : FObject
     public delegate void MethodAI(float dt);
 
     MethodAI methodAI = null;
+    MobState ms;
 
     public Monster()
     {
@@ -813,8 +831,9 @@ public class Monster : FObject
         alive = false;
         position = new iPoint(0, 0);
         rect = new iRect(0, 0, 60, 60);
-        v = new iPoint(0, 0);
-
+        v = new iPoint(1, 0);
+        methodAI = mobAI;
+        moveSpeed = 150;
     }
 
     public override void paint(float dt, iPoint off)
@@ -823,18 +842,42 @@ public class Monster : FObject
         iPoint p = position + rect.origin + off;
         iGUI.instance.setRGBA(0, 0, 0, 1);
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-        
         move(dt);
 
         if ( methodAI!=null )
             methodAI(dt);
     }
 
+    float t = 0;
     public void mobAI(float dt)
     {
-        //for (int i =0; i < )
-        v.x = +1;
-        
+        int a;
+        t -= dt;
+        if (t < 0)
+        {
+            a = Random.Range(0, 2);
+            t = 2;
+            switch (a)
+            {
+                case 0:
+                    ms = MobState.Idle;
+                    break;
+                case 1:
+                    ms = MobState.Move;
+                    v.x = 1;
+                    break;
+            }
+
+        }
+        if((int)ms == 0)
+            v.x = 0;
+        if ((int)ms == 1)
+        {
+            if (block)
+                v.x *= -1;
+            else
+                v.x *= +1;
+        }
     }
 
 }

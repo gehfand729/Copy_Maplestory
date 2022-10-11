@@ -165,6 +165,9 @@ public class Intro : GObject
         switch (stat)
         {
             case iKeystate.Began:
+                i = pop.selected;
+                if (i == -1) break;
+                imgBtn[i].select = true;
                 break;
             case iKeystate.Moved:
                 for(i = 0; i < imgBtn.Length; i++)
@@ -179,12 +182,17 @@ public class Intro : GObject
                 if( pop.selected !=j )
                 {
                     pop.selected = j;
-                    Debug.Log($"iLength is {imgBtn.Length}");
-                    Debug.Log(pop.selected!=-1 ? i + "¼±ÅÃÀ½"  : i + "ÃðÀ½");
+                    if (pop.selected != -1)
+                        imgBtn[pop.selected].select = false;
+                    pop.selected = j;
                 }
 
                 break;
             case iKeystate.Ended:
+                i = pop.selected;
+                if (i == -1) break;
+                imgBtn[i].select = false;
+                Main.me.reset("Proc");
                 break;
         }
     }
