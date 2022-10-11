@@ -25,6 +25,7 @@ namespace STD
 		i = 32,
 		a = 64,
 		esc = 128,
+		ctrl = 256,
 	};
 
 	public delegate void MethodKeyboard(iKeystate stat, int key);

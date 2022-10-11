@@ -679,6 +679,8 @@ public class FObject
                 jumpForce = 0;
                 yy = maxY;
             }
+            else
+                jumping = true;
             position.y = yy - rect.origin.y - rect.size.height;
         }
     }
@@ -687,6 +689,10 @@ public class FObject
 
 public class Player : FObject
 {
+    bool down;
+    bool attack;
+    iRect aRect;
+    Attack a;
     public Player()
     {
         maxHp = 100;
@@ -694,8 +700,12 @@ public class Player : FObject
         position = new iPoint(0, 0);
         rect = new iRect(0, 0, 50, 50);
         v = new iPoint(0, 0);
+        a = new Attack(position, ap);
+
         moveSpeed = 300;
-        
+
+        attack = false;
+        down = false;
         jumping = true;
         jumpForce = 0;
         preHeight = rect.size.height;
@@ -717,7 +727,12 @@ public class Player : FObject
 
         move(dt);
 
-        Monster m = checkCollision();
+        if (attack)
+            a.paint(dt);
+        //    aRect = new iRect(position.x + rect.size.width, position.y, 10, 50);
+
+
+        Monster m = checkCollision(rect);
         t += dt;
         if(m != null)
         {
@@ -757,8 +772,12 @@ public class Player : FObject
                 v.y = -1;
             else if (CheckKey(key, iKeyboard.Down))
             {
-                rect.origin.y = downHeight;   
-                rect.size.height = downHeight;
+                if (!jumping)
+                {
+                    down = true;
+                    rect.origin.y = downHeight;
+                    rect.size.height = downHeight;
+                }
             }
         }
 
@@ -766,6 +785,7 @@ public class Player : FObject
         {
             if (CheckKey(key, iKeyboard.Down))
             {
+                down = false;
                 rect.origin.y = preY;
                 rect.size.height = preHeight;
             }
@@ -778,17 +798,24 @@ public class Player : FObject
         {
             if (CheckKey(key, iKeyboard.alt))
             {
-                jumping = true;
-                jumpForce = -700;
+                if (!jumping && !down)
+                {
+                    jumping = true;
+                    jumpForce = -700;
+                }
+            }
+            if(CheckKey(key, iKeyboard.ctrl))
+            {
+                attack = true;
             }
         }
 
         if (v.x != 0 || v.y != 0)
             v /= v.getLength();
     }
-    public Monster checkCollision()
+    public Monster checkCollision(iRect rt)
     {
-        iRect src = rect;
+        iRect src = rt;
         src.origin += position;
 
         iRect dst;
@@ -844,7 +871,7 @@ public class Monster : FObject
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
         move(dt);
 
-        if ( methodAI!=null )
+        if (methodAI != null)
             methodAI(dt);
     }
 
@@ -869,7 +896,7 @@ public class Monster : FObject
             }
 
         }
-        if((int)ms == 0)
+        if ((int)ms == 0)
             v.x = 0;
         if ((int)ms == 1)
         {
@@ -879,5 +906,47 @@ public class Monster : FObject
                 v.x *= +1;
         }
     }
+}
+public class Attack
+{
+    iPoint position;
+    iRect rect;
+    int dmg;
+    
+    public Attack(iPoint p, int _dmg)
+    {
+        position = p;
+        rect = new iRect(0,0,20,50);
+        dmg = _dmg;
+    }
 
+    public void paint(float dt)
+    {
+        //for debuging
+        iGUI.instance.drawRect(0,0,20,50);
+        Monster m = checkCollision(rect);
+        if(m != null)
+        {
+            Debug.Log("attack test");
+        }
+    }
+    Monster checkCollision(iRect rect)
+    {
+        iRect src = rect;
+        src.origin += position;
+
+        iRect dst;
+        for (int i = 0; i < Proc.monsterNum; i++)
+        {
+            Monster m = Proc.monster[i];
+            dst = m.rect;
+            dst.origin += m.position;
+
+            if (dst.containRect(src))
+            {
+                return m;
+            }
+        }
+        return null;
+    }
 }

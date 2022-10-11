@@ -124,7 +124,7 @@ public class MainCamera : MonoBehaviour
     KeyCode[] kc = new KeyCode[] {
             KeyCode.LeftArrow, KeyCode.RightArrow,
             KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftAlt,
-            KeyCode.I, KeyCode.A, KeyCode.Escape,
+            KeyCode.I, KeyCode.A, KeyCode.Escape, KeyCode.LeftControl,
         };
 
     public static Vector3 iPointToVector3(iPoint p)

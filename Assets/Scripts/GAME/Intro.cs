@@ -192,7 +192,8 @@ public class Intro : GObject
                 i = pop.selected;
                 if (i == -1) break;
                 imgBtn[i].select = false;
-                Main.me.reset("Proc");
+                if(i == 0)
+                    Main.me.reset("Proc");
                 break;
         }
     }
