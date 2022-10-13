@@ -22,6 +22,8 @@ namespace STD
 		public bool select;
 		public float selectDt, _selectDt, selectScale;
 
+		public bool leftRight;
+
 		public iImage()
 		{
 			listTex = new List<iTexture>();
@@ -33,7 +35,7 @@ namespace STD
 			repeatIdx = 0;
 			repeatNum = 0;
 			frame = 0;
-			_frameDt = 0.0167f;// 1 / 60
+			_frameDt = 1f;// 1 / 60
 			frameDt = 0.0f;
 			scale = 1.0f;
 
@@ -41,6 +43,11 @@ namespace STD
 			_selectDt = 0.2f;
 			selectDt = 0.0f;
 			selectScale = -0.2f;
+
+			leftRight = false;
+
+			methodAnimation = null;
+			obj = null;
 		}
 
 		public iImage clone()
@@ -100,6 +107,8 @@ namespace STD
 							if (repeatIdx == repeatNum)
 							{
 								animation = false;
+								if (methodAnimation != null)
+									methodAnimation(obj);
 							}
 						}
 					}
@@ -133,15 +142,22 @@ namespace STD
 				off.y += (1 - ss) * t.height / 2;
 			}
 			iGUI.instance.drawImage(t, off.x, off.y, ss, ss,
-				iGUI.TOP | iGUI.LEFT, 2, 0, iGUI.REVERSE_NONE);
+				iGUI.TOP | iGUI.LEFT, 2, 0, leftRight ? iGUI.REVERSE_WIDTH : iGUI.REVERSE_NONE);
 		}
 
-		public void startAnimation()
+		public delegate void MethodAnimation(object obj);
+		MethodAnimation methodAnimation;
+		object obj;
+
+		public void startAnimation(MethodAnimation m = null, object o = null)
 		{
 			animation = true;
 			repeatIdx = 0;
 			frame = 0;
 			frameDt = 0.0f;
+
+			methodAnimation = m;
+			obj = o;
 		}
 
 		public iRect touchRect()

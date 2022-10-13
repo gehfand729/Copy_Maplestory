@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using STD;
+using System.Runtime.InteropServices;
 
 public class Proc : GObject
 {
@@ -385,6 +386,26 @@ public class Proc : GObject
 }
 
 
+public class Func
+{
+    public static Texture2D textureFromSprite(Sprite sprite)
+    {
+        if (sprite.rect.width != sprite.texture.width)
+        {
+            Texture2D newText = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
+            Color[] newColors = sprite.texture.GetPixels((int)sprite.textureRect.x,
+                                                         (int)sprite.textureRect.y,
+                                                         (int)sprite.textureRect.width,
+                                                         (int)sprite.textureRect.height);
+            newText.SetPixels(newColors);
+            newText.Apply();
+            return newText;
+        }
+        else
+            return sprite.texture;
+    }
+}
+
 enum TileAttr
 {
     none = 0,
@@ -393,6 +414,7 @@ enum TileAttr
     canLeft,
     canRight,
     mobCant,
+	leftSlope,
 
     Max
 }
@@ -418,7 +440,7 @@ public class Field
         ratioH = 1.0f * MainCamera.devHeight / texBg.height;
 
 
-        fieldTex = textureFromSprite(Resources.Load<Sprite>("map"));
+        fieldTex = Func.textureFromSprite(Resources.Load<Sprite>("map"));
         tileX = 30;
         tileY = 19;
         tileW = fieldTex.width;
@@ -442,39 +464,25 @@ public class Field
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 6, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
         off = new iPoint(0, 0);
         offMin = new iPoint(MainCamera.devWidth- tileW*tileX, MainCamera.devHeight-tileH*tileY);
         offMax = new iPoint(0, 0);
 
-        colorTile = new Color[(int)TileAttr.Max]
-        {
-            Color.clear, Color.red, Color.blue, Color.gray, Color.yellow,Color.clear
+		colorTile = new Color[(int)TileAttr.Max]
+		{
+			Color.clear, Color.red, Color.blue, Color.gray, Color.yellow,Color.clear, Color.green,
         };
 
     }
 
-    public static Texture2D textureFromSprite(Sprite sprite)
-    {
-        if (sprite.rect.width != sprite.texture.width)
-        {
-            Texture2D newText = new Texture2D((int)sprite.rect.width, (int)sprite.rect.height);
-            Color[] newColors = sprite.texture.GetPixels((int)sprite.textureRect.x,
-                                                         (int)sprite.textureRect.y,
-                                                         (int)sprite.textureRect.width,
-                                                         (int)sprite.textureRect.height);
-            newText.SetPixels(newColors);
-            newText.Apply();
-            return newText;
-        }
-        else
-            return sprite.texture;
-    }
+    
 
     public void paint(float dt)
     {
+		iGUI.instance.setRGBA(1, 1, 1, 1);
         iGUI.instance.drawImage(texBg, 0, 0, ratioW, ratioH, iGUI.TOP | iGUI.LEFT);
         
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
@@ -500,14 +508,19 @@ public class Field
             float x = off.x + tileW * (i % tileX);
             float y = off.y + tileH * (i / tileX);
             int t = tiles[i];
+            Color c = colorTile[t];
             if (t == 1)
             {
                 iGUI.instance.setRGBA(1, 1, 1, 1);
                 iGUI.instance.drawImage(fieldTex, x, y, iGUI.TOP | iGUI.LEFT);
             }
+			else if (t == 6)
+			{
+				iGUI.instance.setRGBA(c.r, c.g, c.b, c.a);
+				iGUI.instance.drawLine(x, y + tileH, x + tileW, y);
+			}
             else
             {
-                Color c = colorTile[t];
                 iGUI.instance.setRGBA(c.r, c.g, c.b, c.a);
                 iGUI.instance.fillRect(x, y, tileW, tileH);
             }
@@ -587,7 +600,7 @@ public class FObject
             float maxX = Proc.f.tileX * Proc.f.tileW - 1;
             bool check = false;
 
-            float k = (yy + rect.size.height) / Proc.f.tileH;
+			float k = (yy + rect.size.height) / Proc.f.tileH;
             for (int i = x + 1; i < Proc.f.tileX; i++)
             {
                 for (int j = y; j < k; j++)
@@ -596,7 +609,7 @@ public class FObject
                     if (n == 0) continue;
                     if (n == 2 || n == 4) continue;
 
-                    maxX = Proc.f.tileW * i - 1;
+					maxX = Proc.f.tileW * i - 1;
                     check = true;
                     break;
                 }
@@ -689,10 +702,231 @@ public class FObject
 
 public class Player : FObject
 {
-    bool down;
-    bool attack;
-    iRect aRect;
-    Attack a;
+	enum Behave
+	{
+		waitLeft = 0,
+		waitRight,
+        walkLeft,
+        walkRight,
+
+        att0Left,
+        att0Right,
+        att1Left,
+        att1Right,
+        att2Left,
+        att2Right,
+
+        jumpLeft,
+		jumpRight,
+
+
+
+		max
+	}
+	iImage[] imgs;
+	iImage imgCurr;
+	Behave be;
+
+#if true
+#if false
+    void loadImage()
+    {
+        int i, j = (int)Behave.max;
+        imgs = new iImage[j];
+        for (i = 0; i < j; i++)
+        {
+            iImage img;
+            if (i % 2 == 0)// left µ¿wkr
+            {
+                img = new iImage();
+                for (int k = 0; k < 3; k++)
+                {
+                    iStrTex st = new iStrTex(methodStCreateImg, 50,50);
+                    st.setString(i % 2 + "\n" + k );
+                }
+            }
+        }
+    }
+#else
+    void loadImage()
+    {
+        int i, j = (int)Behave.max;
+        imgs = new iImage[j];
+        for (i = 0; i < j; i++)
+        {
+            iImage img;
+            if (i % 2 == 0)
+            {
+                img = new iImage();
+                for (int k = 0; k < 2; k++)
+                {
+                    iStrTex st = new iStrTex(methodStCreateImg, 100, 200);
+                    st.setString((i / 2) + "\n" + k);
+                    img.add(st.tex);
+                }
+            }
+            else
+            {
+                img = imgs[i - 1].clone();
+                img.leftRight = true;
+            }
+
+            if (i < (int)Behave.walkLeft)
+            {
+                img.repeatNum = 0;
+                img.startAnimation();
+            }
+            else
+            {
+                img.repeatNum = 1;
+            }
+
+            imgs[i] = img;
+        }
+        be = Behave.waitLeft;
+        imgCurr = imgs[(int)be];
+
+        // test
+        //if (imgCurr.leftRight)
+        //{
+        //	be = Behave.waitRight;
+        //}
+        //be = Behave.attLeft;
+        //imgs[(int)be].startAnimation(cbAnimation, this);
+        //imgCurr = imgs[(int)be];
+    
+    }
+#endif
+
+    void methodStCreateImg(iStrTex st)
+    {
+        string[] str = st.str.Split("\n");
+        int be = int.Parse(str[0]);
+        int frame = int.Parse(str[1]);
+        //iImage imgs;
+        if(be == 0)
+        {
+            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWait");
+            Texture tex = Func.textureFromSprite(sprite[frame]);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+        }
+        else if( be == 1)
+        {
+            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWalk0");
+            Texture tex = Func.textureFromSprite(sprite[frame]);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+        }
+        
+
+        
+
+        iGUI.instance.setStringSize(25);
+        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
+        iGUI.instance.setRGBA(1, 1, 1, 1);
+    }
+
+    void cbAnim(object obj)
+    {
+        Player p = (Player)obj;
+        p.be = (Behave)((int)p.be % 2);
+        p.imgCurr = p.imgs[(int)p.be];
+    }
+    void cbAttAnim(object obj)
+    {
+        Player p = (Player)obj;
+    }
+#else
+    void loadImage() 
+    { 
+        int i, j = (int)Behave.max;
+		imgs = new iImage[j];
+		for (i = 0; i < j; i++)
+		{
+			iImage img;
+			if (i % 2 == 0)
+			{
+				img = new iImage();
+				for (int k = 0; k < 3; k++)
+				{
+					iStrTex st = new iStrTex(methodStCreateImage, rect.size.width, rect.size.height);
+					st.setString((i / 2) + "\n" + k);
+					img.add(st.tex);
+				}
+			}
+			else
+			{
+				img = imgs[i - 1].clone();
+				img.leftRight = true;
+			}
+
+			if (i < (int)Behave.attLeft)
+			{
+				img.repeatNum = 0;
+				img.startAnimation();
+			}
+			else
+			{
+				img.repeatNum = 1;
+			}
+
+			imgs[i] = img;
+		}
+		be = Behave.waitLeft;
+		imgCurr = imgs[(int)be];
+
+		// test
+		//if (imgCurr.leftRight)
+		//{
+		//	be = Behave.waitRight;
+		//}
+		//be = Behave.attLeft;
+		//imgs[(int)be].startAnimation(cbAnimation, this);
+		//imgCurr = imgs[(int)be];
+	}
+
+	public void cbAnim(object obj)
+	{
+		Player p = (Player)obj;
+		p.be = (Behave)((int)p.be % 2);
+		p.imgCurr = p.imgs[(int)p.be];
+	}
+
+
+	void methodStCreateImage(iStrTex st)
+	{
+		string[] s = st.str.Split("\n");
+		int be = int.Parse(s[0]);
+		int frame = int.Parse(s[1]);
+
+		if( be==0 )// wait
+		{
+			iGUI.instance.setRGBA(1, 1, 1, 1);
+			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
+			iGUI.instance.setRGBA(1, 0, 0, 1);
+			iGUI.instance.fillRect(5, 20, 10, 10);
+
+			iGUI.instance.setStringRGBA(0, 0, 0, 1);
+		}
+		else if( be==1 )// att
+		{
+			iGUI.instance.setRGBA(0, 0, 1, 1);
+			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
+			iGUI.instance.setRGBA(0, 0, 0, 1);
+			iGUI.instance.fillRect(5, 20, 10, 10);
+
+			iGUI.instance.setStringRGBA(1, 0, 0, 1);
+		}
+
+		iGUI.instance.setStringSize(25);
+		iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
+		iGUI.instance.setRGBA(1, 1, 1, 1);
+	}
+
+#endif
+
+	bool down;
     public Player()
     {
         maxHp = 100;
@@ -700,11 +934,9 @@ public class Player : FObject
         position = new iPoint(0, 0);
         rect = new iRect(0, 0, 50, 50);
         v = new iPoint(0, 0);
-        a = new Attack(position, ap);
 
         moveSpeed = 300;
 
-        attack = false;
         down = false;
         jumping = true;
         jumpForce = 0;
@@ -714,6 +946,7 @@ public class Player : FObject
 
 
         MainCamera.methodKeyboard += keyboard;
+		loadImage();
     }
 
 
@@ -721,18 +954,26 @@ public class Player : FObject
     float cInterval = 2;
     public override void paint(float dt, iPoint off)
     {
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-        iPoint p = position + rect.origin + off;
-        iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-
+		
+		iPoint p = position + rect.origin + off;
+		//iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
+		imgCurr.paint(dt, p);
         move(dt);
 
-        if (attack)
-            a.paint(dt);
-        //    aRect = new iRect(position.x + rect.size.width, position.y, 10, 50);
+#if false
+		if (v.x > 0)
+			be = Behave.waitRight;
+		else if (v.x < 0)
+			be = Behave.waitLeft;
+#else
+		if( v.x != 0)
+		{
+			be = (Behave)((int)be / 2 * 2) + (v.x > 0 ? 1 : 0);
+			imgCurr = imgs[(int)be];
+		}
 
-
-        Monster m = checkCollision(rect);
+#endif
+		Monster m = checkCollision(rect);
         t += dt;
         if(m != null)
         {
@@ -764,19 +1005,30 @@ public class Player : FObject
         if (stat == iKeystate.Moved)
         {
             if (CheckKey(key, iKeyboard.Left))
-                v.x = -1;
-            else if (CheckKey(key, iKeyboard.Right))
-                v.x = +1;
-
-            if (CheckKey(key, iKeyboard.Up))
-                v.y = -1;
-            else if (CheckKey(key, iKeyboard.Down))
             {
-                if (!jumping)
+                v.x = -1;
+            }
+            else if (CheckKey(key, iKeyboard.Right))
+            {
+                v.x = +1;
+            }
+			if (CheckKey(key, iKeyboard.Up))
+				;
+			else if (CheckKey(key, iKeyboard.Down))
+			{
+				if (!jumping)
+				{
+					down = true;
+					rect.origin.y = downHeight;
+					rect.size.height = downHeight;
+				}
+			}
+            if (CheckKey(key, iKeyboard.alt))
+            {
+                if (!jumping && !down)
                 {
-                    down = true;
-                    rect.origin.y = downHeight;
-                    rect.size.height = downHeight;
+                    jumping = true;
+                    jumpForce = -700;
                 }
             }
         }
@@ -796,19 +1048,13 @@ public class Player : FObject
 
         if (stat == iKeystate.Began)
         {
-            if (CheckKey(key, iKeyboard.alt))
-            {
-                if (!jumping && !down)
-                {
-                    jumping = true;
-                    jumpForce = -700;
-                }
-            }
             if(CheckKey(key, iKeyboard.ctrl))
             {
-                attack = true;
-            }
-        }
+				be = (Behave)( (int)Behave.walkLeft + (int)be %2 );
+				imgCurr = imgs[(int)be];
+				imgCurr.startAnimation(cbAnim, this);
+			}
+		}
 
         if (v.x != 0 || v.y != 0)
             v /= v.getLength();
@@ -909,44 +1155,23 @@ public class Monster : FObject
 }
 public class Attack
 {
-    iPoint position;
-    iRect rect;
-    int dmg;
-    
-    public Attack(iPoint p, int _dmg)
-    {
-        position = p;
-        rect = new iRect(0,0,20,50);
-        dmg = _dmg;
-    }
+	FObject att;
+	iRect rt;
+	iPoint pos;
+	iPoint v;
+	float lifeTime;
+	int nHitChar;
+	int nHIt;
 
-    public void paint(float dt)
-    {
-        //for debuging
-        iGUI.instance.drawRect(0,0,20,50);
-        Monster m = checkCollision(rect);
-        if(m != null)
-        {
-            Debug.Log("attack test");
-        }
-    }
-    Monster checkCollision(iRect rect)
-    {
-        iRect src = rect;
-        src.origin += position;
+	public Attack(FObject _att, iRect _rt)
+	{
+		att = _att;
+		rt = _rt;
+		pos = new iPoint(_att.rect.origin.x + _att.position.x + _att.rect.size.width, _att.rect.origin.y + _att.position.y);
+	}
 
-        iRect dst;
-        for (int i = 0; i < Proc.monsterNum; i++)
-        {
-            Monster m = Proc.monster[i];
-            dst = m.rect;
-            dst.origin += m.position;
+	void paint(float dt)
+	{
 
-            if (dst.containRect(src))
-            {
-                return m;
-            }
-        }
-        return null;
-    }
+	}
 }
