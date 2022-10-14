@@ -836,6 +836,12 @@ public class Player : FObject
     void cbAttAnim(object obj)
     {
         Player p = (Player)obj;
+        p.be = (Behave)(((int)p.be + 2));
+        p.imgCurr = p.imgs[(int)p.be];
+        if (p.be < Behave.jumpLeft)
+            p.imgCurr.startAnimation(cbAttAnim, p);
+        else
+            cbAnim(p);
     }
 #else
     void loadImage() 
@@ -1050,9 +1056,9 @@ public class Player : FObject
         {
             if(CheckKey(key, iKeyboard.ctrl))
             {
-				be = (Behave)( (int)Behave.walkLeft + (int)be %2 );
+				be = (Behave)( (int)Behave.att0Left + (int)be %2 );
 				imgCurr = imgs[(int)be];
-				imgCurr.startAnimation(cbAnim, this);
+				imgCurr.startAnimation(cbAttAnim, this);
 			}
 		}
 
