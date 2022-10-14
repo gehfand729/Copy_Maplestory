@@ -543,6 +543,8 @@ public class FObject
     public bool block;
 
     public int hp, maxHp, ap;
+
+    public Attack att;
     
     public FObject()
     {
@@ -719,131 +721,14 @@ public class Player : FObject
         jumpLeft,
 		jumpRight,
 
-
-
 		max
 	}
 	iImage[] imgs;
 	iImage imgCurr;
 	Behave be;
 
-#if true
-#if false
-    void loadImage()
-    {
-        int i, j = (int)Behave.max;
-        imgs = new iImage[j];
-        for (i = 0; i < j; i++)
-        {
-            iImage img;
-            if (i % 2 == 0)// left µ¿wkr
-            {
-                img = new iImage();
-                for (int k = 0; k < 3; k++)
-                {
-                    iStrTex st = new iStrTex(methodStCreateImg, 50,50);
-                    st.setString(i % 2 + "\n" + k );
-                }
-            }
-        }
-    }
-#else
-    void loadImage()
-    {
-        int i, j = (int)Behave.max;
-        imgs = new iImage[j];
-        for (i = 0; i < j; i++)
-        {
-            iImage img;
-            if (i % 2 == 0)
-            {
-                img = new iImage();
-                for (int k = 0; k < 2; k++)
-                {
-                    iStrTex st = new iStrTex(methodStCreateImg, 100, 200);
-                    st.setString((i / 2) + "\n" + k);
-                    img.add(st.tex);
-                }
-            }
-            else
-            {
-                img = imgs[i - 1].clone();
-                img.leftRight = true;
-            }
 
-            if (i < (int)Behave.walkLeft)
-            {
-                img.repeatNum = 0;
-                img.startAnimation();
-            }
-            else
-            {
-                img.repeatNum = 1;
-            }
 
-            imgs[i] = img;
-        }
-        be = Behave.waitLeft;
-        imgCurr = imgs[(int)be];
-
-        // test
-        //if (imgCurr.leftRight)
-        //{
-        //	be = Behave.waitRight;
-        //}
-        //be = Behave.attLeft;
-        //imgs[(int)be].startAnimation(cbAnimation, this);
-        //imgCurr = imgs[(int)be];
-    
-    }
-#endif
-
-    void methodStCreateImg(iStrTex st)
-    {
-        string[] str = st.str.Split("\n");
-        int be = int.Parse(str[0]);
-        int frame = int.Parse(str[1]);
-        //iImage imgs;
-        if(be == 0)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWait");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        else if( be == 1)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWalk0");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        
-
-        
-
-        iGUI.instance.setStringSize(25);
-        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-    }
-
-    void cbAnim(object obj)
-    {
-        Player p = (Player)obj;
-        p.be = (Behave)((int)p.be % 2);
-        p.imgCurr = p.imgs[(int)p.be];
-    }
-    void cbAttAnim(object obj)
-    {
-        Player p = (Player)obj;
-        p.be = (Behave)(((int)p.be + 2));
-        p.imgCurr = p.imgs[(int)p.be];
-        if (p.be < Behave.jumpLeft)
-            p.imgCurr.startAnimation(cbAttAnim, p);
-        else
-            cbAnim(p);
-    }
-#else
     void loadImage() 
     { 
         int i, j = (int)Behave.max;
@@ -867,7 +752,7 @@ public class Player : FObject
 				img.leftRight = true;
 			}
 
-			if (i < (int)Behave.attLeft)
+			if (i < (int)Behave.walkLeft)
 			{
 				img.repeatNum = 0;
 				img.startAnimation();
@@ -898,9 +783,51 @@ public class Player : FObject
 		p.be = (Behave)((int)p.be % 2);
 		p.imgCurr = p.imgs[(int)p.be];
 	}
+    void cbAttAnim(object obj)
+    {
+        Player p = (Player)obj;
+        p.be = (Behave)(((int)p.be + 2));
+        p.imgCurr = p.imgs[(int)p.be];
+        if (p.be < Behave.jumpLeft)
+            p.imgCurr.startAnimation(cbAttAnim, p);
+        else
+            cbAnim(p);
 
+    }
 
-	void methodStCreateImage(iStrTex st)
+#if false
+    void methodStCreateImg(iStrTex st)
+    {
+        string[] str = st.str.Split("\n");
+        int be = int.Parse(str[0]);
+        int frame = int.Parse(str[1]);
+        //iImage imgs;
+        if(be == 0)
+        {
+            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWait");
+            Texture tex = Func.textureFromSprite(sprite[frame]);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+        }
+        else if( be == 1)
+        {
+            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWalk0");
+            Texture tex = Func.textureFromSprite(sprite[frame]);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+        }
+        else if (be == 3)
+        {
+            iGUI.instance.setRGBA(0, 0, 1, 1);
+            iGUI.instance.fillRect(0, 0, 50, 50);
+        }
+
+        iGUI.instance.setStringSize(25);
+        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
+        iGUI.instance.setRGBA(1, 1, 1, 1);
+    }
+#else
+    void methodStCreateImage(iStrTex st)
 	{
 		string[] s = st.str.Split("\n");
 		int be = int.Parse(s[0]);
@@ -915,7 +842,7 @@ public class Player : FObject
 
 			iGUI.instance.setStringRGBA(0, 0, 0, 1);
 		}
-		else if( be==1 )// att
+		else if( be==3 )// att
 		{
 			iGUI.instance.setRGBA(0, 0, 1, 1);
 			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
@@ -929,10 +856,9 @@ public class Player : FObject
 		iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
 		iGUI.instance.setRGBA(1, 1, 1, 1);
 	}
-
 #endif
 
-	bool down;
+    bool down;
     public Player()
     {
         maxHp = 100;
@@ -950,6 +876,7 @@ public class Player : FObject
         downHeight = preHeight / 2;
         preY = rect.origin.y;
 
+        
 
         MainCamera.methodKeyboard += keyboard;
 		loadImage();
@@ -966,19 +893,12 @@ public class Player : FObject
 		imgCurr.paint(dt, p);
         move(dt);
 
-#if false
-		if (v.x > 0)
-			be = Behave.waitRight;
-		else if (v.x < 0)
-			be = Behave.waitLeft;
-#else
 		if( v.x != 0)
 		{
 			be = (Behave)((int)be / 2 * 2) + (v.x > 0 ? 1 : 0);
 			imgCurr = imgs[(int)be];
 		}
 
-#endif
 		Monster m = checkCollision(rect);
         t += dt;
         if(m != null)
@@ -1161,23 +1081,12 @@ public class Monster : FObject
 }
 public class Attack
 {
-	FObject att;
-	iRect rt;
-	iPoint pos;
-	iPoint v;
-	float lifeTime;
-	int nHitChar;
-	int nHIt;
+    FObject attObj;
+    FObject hitObj;
 
-	public Attack(FObject _att, iRect _rt)
-	{
-		att = _att;
-		rt = _rt;
-		pos = new iPoint(_att.rect.origin.x + _att.position.x + _att.rect.size.width, _att.rect.origin.y + _att.position.y);
-	}
-
-	void paint(float dt)
-	{
-
-	}
+    Attack(FObject _attObj, FObject _hitObj)
+    {
+        attObj = _attObj;
+        hitObj = _hitObj;
+    }
 }

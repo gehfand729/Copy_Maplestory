@@ -169,6 +169,10 @@ namespace STD
 			drawImage(texDot, cx, cy, len, lineWidth, VCENTER | HCENTER, 2, -degree, REVERSE_NONE);
 		}
 
+		public void drawRect(iRect rt)
+        {
+			drawRect(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
+        }
 		public void drawRect(float x, float y, float width, float height)
 		{
 			// top & bottom
@@ -181,7 +185,12 @@ namespace STD
 						x + width - lineWidth, y + height - lineWidth);
 		}
 
-		public void fillRect(float x, float y, float width, float height)
+        public void fillRect(iRect rt)
+        {
+			fillRect(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
+        }
+
+        public void fillRect(float x, float y, float width, float height)
 		{
 			drawImage(texDot, x, y, width, height, TOP | LEFT, 2, 0, REVERSE_NONE);
 		}
