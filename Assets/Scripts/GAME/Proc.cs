@@ -92,6 +92,7 @@ public class Proc : GObject
     iImage img;
     iPoint offInven;
     Texture texInven;
+    iRect rectInven;
 
     void createPopInven()
     {
@@ -100,6 +101,7 @@ public class Proc : GObject
         iImage img = new iImage();
         texInven = Resources.Load<Texture>("invenBg1");
         iTexture tex = new iTexture(texInven);
+        rectInven = new iRect(0, 0, texInven.width, 30);
         img.add(tex);
         pop.add(img);
 
@@ -117,6 +119,13 @@ public class Proc : GObject
     }
     void mousePopInven(iKeystate stat, iPoint point)
     {
+        if (rectInven.containPoint(point))
+        {
+            if(stat == iKeystate.Began)
+            {
+
+            }
+        }
 
     }
 
@@ -445,6 +454,7 @@ public class Field
         tileY = 19;
         tileW = fieldTex.width;
         tileH = fieldTex.height;
+
         tiles = new int[]
         {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -484,7 +494,7 @@ public class Field
     {
 		iGUI.instance.setRGBA(1, 1, 1, 1);
         iGUI.instance.drawImage(texBg, 0, 0, ratioW, ratioH, iGUI.TOP | iGUI.LEFT);
-        
+
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
                 - ((Proc)Main.curr).p.position;
         iPoint lOff = new iPoint(0, 0);
@@ -531,6 +541,26 @@ public class Field
 
 public class FObject
 {
+    public enum Behave
+    {
+        waitLeft = 0,
+        waitRight,
+        walkLeft,
+        walkRight,
+
+        att0Left,
+        att0Right,
+        att1Left,
+        att1Right,
+        att2Left,
+        att2Right,
+
+        jumpLeft,
+        jumpRight,
+
+        max
+    }
+    public Behave be;
     public bool alive;
     public iPoint position;
     public iRect rect;
@@ -704,28 +734,10 @@ public class FObject
 
 public class Player : FObject
 {
-	enum Behave
-	{
-		waitLeft = 0,
-		waitRight,
-        walkLeft,
-        walkRight,
-
-        att0Left,
-        att0Right,
-        att1Left,
-        att1Right,
-        att2Left,
-        att2Right,
-
-        jumpLeft,
-		jumpRight,
-
-		max
-	}
+	
 	iImage[] imgs;
 	iImage imgCurr;
-	Behave be;
+	
 
 
 
@@ -887,11 +899,16 @@ public class Player : FObject
     float cInterval = 2;
     public override void paint(float dt, iPoint off)
     {
-		
 		iPoint p = position + rect.origin + off;
 		//iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 		imgCurr.paint(dt, p);
         move(dt);
+        
+        if(be >Behave.att0Right && be < Behave.att2Left)
+        {
+            Attack att = new Attack(this);
+            att.paint(dt, off);
+        }
 
 		if( v.x != 0)
 		{
@@ -1041,7 +1058,7 @@ public class Monster : FObject
         iPoint p = position + rect.origin + off;
         iGUI.instance.setRGBA(0, 0, 0, 1);
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-        move(dt);
+        //move(dt);
 
         if (methodAI != null)
             methodAI(dt);
@@ -1084,9 +1101,20 @@ public class Attack
     FObject attObj;
     FObject hitObj;
 
-    Attack(FObject _attObj, FObject _hitObj)
+    public Attack(FObject _attObj)
     {
         attObj = _attObj;
-        hitObj = _hitObj;
+    }
+    public void paint(float dt, iPoint off)
+    {
+        iPoint p = attObj.position + off;
+        if ((int)attObj.be % 2 > 0)
+        {
+            p.x += attObj.rect.size.width;
+        }
+        else
+            p.x -= 500;
+        iGUI.instance.setRGBA(1, 1, 1, 1);
+        iGUI.instance.fillRect(p.x, p.y, 500, 500);
     }
 }
