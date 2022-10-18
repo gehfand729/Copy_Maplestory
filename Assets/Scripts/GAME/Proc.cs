@@ -39,6 +39,7 @@ public class Proc : GObject
 
     public override void key(iKeystate stat, iPoint point)
     {
+            mousePopInven(stat, point);
         // ui
         // f
         // p
@@ -88,7 +89,7 @@ public class Proc : GObject
 
     // Inventory ===============================================================
     iPopup popInven = null;
-    iImage[] invenImg;
+    iImage[] imgInven;
     iImage img;
     iPoint offInven;
     Texture texInven;
@@ -99,10 +100,12 @@ public class Proc : GObject
         // inventory
         iPopup pop = new iPopup();
         iImage img = new iImage();
+        imgInven = new iImage[1];
         texInven = Resources.Load<Texture>("invenBg1");
         iTexture tex = new iTexture(texInven);
         rectInven = new iRect(0, 0, texInven.width, 30);
         img.add(tex);
+        imgInven[0] = img;
         pop.add(img);
 
         pop.openPoint = new iPoint(500, 300);
@@ -116,17 +119,43 @@ public class Proc : GObject
     }
     void keyboardPopInven(iKeystate stat, int key)
     {
+
     }
+
     void mousePopInven(iKeystate stat, iPoint point)
     {
-        if (rectInven.containPoint(point))
+        if (popInven.state == iPopupState.proc)
         {
-            if(stat == iKeystate.Began)
-            {
+            iPopup pop = popInven;
+            iImage[] img = imgInven;
 
+            int imgIndex, selectIndex = -1;
+            switch (stat)
+            {
+                case iKeystate.Began:
+                    for(imgIndex = 0; imgIndex < img.Length; imgIndex++)
+                    {
+                        if (img[imgIndex].touchRect(pop.closePoint, new iSize(0, 0)).containPoint(point))
+                        {
+                            selectIndex = imgIndex;
+                            break;
+                        }
+                    }
+                    if(pop.selected != selectIndex)
+                    {
+                        pop.selected = selectIndex;
+                        Debug.Log("Began");
+                    }
+                    break;
+                case iKeystate.Ended:
+                    if(pop.selected == selectIndex)
+                    {
+                        pop.selected = -1;
+                        Debug.Log("Ended");
+                    }
+                    break;
             }
         }
-
     }
 
     void wheelPopInven(iPoint wheel)
