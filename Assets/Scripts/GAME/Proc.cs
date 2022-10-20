@@ -5,6 +5,7 @@ using UnityEngine;
 using STD;
 using System.Runtime.InteropServices;
 
+#if false
 public class Proc : GObject
 {
     public static Field f;
@@ -124,38 +125,6 @@ public class Proc : GObject
 
     void mousePopInven(iKeystate stat, iPoint point)
     {
-        if (popInven.state == iPopupState.proc)
-        {
-            iPopup pop = popInven;
-            iImage[] img = imgInven;
-
-            int imgIndex, selectIndex = -1;
-            switch (stat)
-            {
-                case iKeystate.Began:
-                    for(imgIndex = 0; imgIndex < img.Length; imgIndex++)
-                    {
-                        if (img[imgIndex].touchRect(pop.closePoint, new iSize(0, 0)).containPoint(point))
-                        {
-                            selectIndex = imgIndex;
-                            break;
-                        }
-                    }
-                    if(pop.selected != selectIndex)
-                    {
-                        pop.selected = selectIndex;
-                        Debug.Log("Began");
-                    }
-                    break;
-                case iKeystate.Ended:
-                    if(pop.selected == selectIndex)
-                    {
-                        pop.selected = -1;
-                        Debug.Log("Ended");
-                    }
-                    break;
-            }
-        }
     }
 
     void wheelPopInven(iPoint wheel)
@@ -376,6 +345,7 @@ public class Proc : GObject
         popSetting.paint(dt);
     }
 
+
     // mob ========================================================
     Monster[] _monster;
     public static Monster[] monster;
@@ -442,6 +412,7 @@ public class Func
         else
             return sprite.texture;
     }
+
 }
 
 enum TileAttr
@@ -1079,6 +1050,7 @@ public class Monster : FObject
         v = new iPoint(1, 0);
         methodAI = mobAI;
         moveSpeed = 150;
+
     }
 
     public override void paint(float dt, iPoint off)
@@ -1088,6 +1060,9 @@ public class Monster : FObject
         iGUI.instance.setRGBA(0, 0, 0, 1);
         iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
         //move(dt);
+
+        Debug.Log($"off is {off.x}, {off.y}");
+        Debug.Log($"Monster PosX :{position.x}, Y :{position.y}");
 
         if (methodAI != null)
             methodAI(dt);
@@ -1129,21 +1104,70 @@ public class Attack
 {
     FObject attObj;
     FObject hitObj;
+    iPoint position;
+    iRect aRect;
 
     public Attack(FObject _attObj)
     {
+        aRect = new iRect(0, 0, 100, 100);
         attObj = _attObj;
     }
     public void paint(float dt, iPoint off)
     {
         iPoint p = attObj.position + off;
+        position = p;
         if ((int)attObj.be % 2 > 0)
         {
             p.x += attObj.rect.size.width;
         }
         else
-            p.x -= 500;
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-        iGUI.instance.fillRect(p.x, p.y, 500, 500);
+            p.x -= 100;
+        aRect.origin.x = p.x;
+        aRect.origin.y = p.y;
+
+        iGUI.instance.setRGBA(1, 0, 0, 1);
+        iGUI.instance.fillRect(aRect);
+        Debug.Log($"aRectP.x : {aRect.origin.x}, aRectP.y :{aRect.origin.y}");
+        Debug.Log($"aRectMaxX : {aRect.origin.x + aRect.size.width}, aRectMaxY :{aRect.origin.y+ aRect.size.height}");
+
+        hitObj = collFObj();
+        Debug.Log(hitObj);
+        if (hitObj != null)
+        {
+            hitObj.hp -= attObj.ap;
+            Debug.Log(hitObj.hp);
+        }
+    }
+    private FObject collFObj()
+    {
+        iRect src = aRect;
+        src.origin += position;
+        iRect dst;
+        if(attObj.GetType() == typeof(Player))
+        {
+            for(int i = 0; i <Proc.monsterNum; i++)
+            {
+                Monster m = Proc.monster[i];
+                dst = m.rect;
+                dst.origin += m.position;
+
+                if (dst.containRect(src))
+                {
+                    Debug.Log(hitObj);
+                    return m;
+                }
+            }
+        }
+        else if(attObj.GetType() == typeof(Monster))
+        {
+            Player p = ((Proc)Main.curr).p;
+            dst = p.rect;
+            dst.origin += p.position;
+            if (dst.containRect(src))
+                return p;
+        }
+        Debug.Log(hitObj);
+        return null;
     }
 }
+#endif
