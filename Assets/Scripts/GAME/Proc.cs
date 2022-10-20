@@ -5,19 +5,26 @@ using UnityEngine;
 using STD;
 using System.Runtime.InteropServices;
 
-#if false
 public class Proc : GObject
 {
-    public static Field f;
+	public static Proc me;
+
+    public Field f;
     public Player p;
-    //public UI ui;
+	//public UI ui;
+
+	public AttMgt am;
 
     public override void load()
     {
+		me = this;
+
         f = new Field();
         p = new Player();
         //ui = new UI();
         loadMonster();
+
+		am = new AttMgt();
 
         createPopUI();
         popInfo.show(true);
@@ -34,7 +41,9 @@ public class Proc : GObject
         p.paint(dt, f.off);
         drawMonster(dt, f.off);
         drawPopUI(dt);
-        //ui.paint(dt);
+		//ui.paint(dt);
+
+		am.update(dt, f.off);
     }
 
 
@@ -348,8 +357,8 @@ public class Proc : GObject
 
     // mob ========================================================
     Monster[] _monster;
-    public static Monster[] monster;
-    public static int monsterNum;
+    public Monster[] monster;
+    public int monsterNum;
 
     void loadMonster()
     {
@@ -448,8 +457,9 @@ public class Field
         ratioW = 1.0f * MainCamera.devWidth / texBg.width;
         ratioH = 1.0f * MainCamera.devHeight / texBg.height;
 
+		Sprite[] spriteMap = Resources.LoadAll<Sprite>("map");
 
-        fieldTex = Func.textureFromSprite(Resources.Load<Sprite>("map"));
+		fieldTex = Func.textureFromSprite(spriteMap[0]);
         tileX = 30;
         tileY = 19;
         tileW = fieldTex.width;
@@ -469,8 +479,8 @@ public class Field
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 5, 5, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -485,10 +495,7 @@ public class Field
 		{
 			Color.clear, Color.red, Color.blue, Color.gray, Color.yellow,Color.clear, Color.green,
         };
-
     }
-
-    
 
     public void paint(float dt)
     {
@@ -496,7 +503,7 @@ public class Field
         iGUI.instance.drawImage(texBg, 0, 0, ratioW, ratioH, iGUI.TOP | iGUI.LEFT);
 
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
-                - ((Proc)Main.curr).p.position;
+                - Proc.me.p.position;
         iPoint lOff = new iPoint(0, 0);
         lOff.x = Mathf.Lerp(off.x, p.x, dt * 2);
         lOff.y = Mathf.Lerp(off.y, p.y, dt * 2);
@@ -539,635 +546,93 @@ public class Field
     }
 }
 
-public class FObject
+class AttInfo
 {
-    public enum Behave
-    {
-        waitLeft = 0,
-        waitRight,
-        walkLeft,
-        walkRight,
+	public AttInfo()
+	{
+		liveDt = _liveDt = 0.000001f;
+	}
 
-        att0Left,
-        att0Right,
-        att1Left,
-        att1Right,
-        att2Left,
-        att2Right,
+	public float liveDt, _liveDt;
 
-        jumpLeft,
-        jumpRight,
-
-        max
-    }
-    public Behave be;
-    public bool alive;
-    public iPoint position;
-    public iRect rect;
-    public iPoint v;
-    public float moveSpeed;
-    public float gravity;
-    public bool jumping;
-    public float jumpForce;
-
-    public bool block;
-
-    public int hp, maxHp, ap;
-
-    public Attack att;
-    
-    public FObject()
-    {
-        gravity = 2000;
-    }
-
-    public virtual void attack() { }
-
-    public void move(float dt) 
-    {
-        iPoint v = this.v * moveSpeed;
-        jumpForce += gravity * dt;
-        v.y += jumpForce;
-        if (v.x < 0)
-        {
-            float xx = position.x + rect.origin.x;
-            float yy = position.y + rect.origin.y;
-            int x = (int)xx; x /= Proc.f.tileW;
-            int y = (int)yy; y /= Proc.f.tileH;
-            float minX = 0;
-            bool check = false;
-
-            float k = (yy + rect.size.height) / Proc.f.tileH;
-            for (int i = x - 1; i > -1; i--)
-            {
-                for (int j = y; j < k; j++)
-                {
-                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
-                    if (n == 0) continue;
-                    if (n == 2 || n == 3) continue;
-
-                    minX = Proc.f.tileW * (i + 1);
-                    check = true;
-                    break;
-                }
-                if (check)
-                    break;
-            }
-            xx += v.x * dt;
-            if (xx < minX)
-            {
-                xx = minX;
-                block = true;
-            }
-            else
-                block = false;
-            position.x = xx - rect.origin.x;
-        }
-        else if (v.x > 0)
-        {
-            float xx = position.x + rect.origin.x + rect.size.width;
-            float yy = position.y + rect.origin.y;
-            int x = (int)xx; x /= Proc.f.tileW;
-            int y = (int)yy; y /= Proc.f.tileH;
-            float maxX = Proc.f.tileX * Proc.f.tileW - 1;
-            bool check = false;
-
-			float k = (yy + rect.size.height) / Proc.f.tileH;
-            for (int i = x + 1; i < Proc.f.tileX; i++)
-            {
-                for (int j = y; j < k; j++)
-                {
-                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
-                    if (n == 0) continue;
-                    if (n == 2 || n == 4) continue;
-
-					maxX = Proc.f.tileW * i - 1;
-                    check = true;
-                    break;
-                }
-                if (check)
-                    break;
-            }
-            xx += v.x * dt;
-            if (xx > maxX)
-            {
-                xx = maxX;
-                block = true;
-            }
-            else
-                block = false;
-            position.x = xx - rect.origin.x - rect.size.width;
-        }
-        if (v.y < 0)
-        {
-            float xx = position.x + rect.origin.x;
-            float yy = position.y + rect.origin.y;
-            int x = (int)xx; x /= Proc.f.tileW;
-            int y = (int)yy; y /= Proc.f.tileH;
-            float minY = 0;
-            bool check = false;
-
-            float k = (xx + rect.size.width) / Proc.f.tileW;
-            for (int j = y - 1; j > -1; j--)
-            {
-                for (int i = x; i < k; i++)
-                {
-                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
-                    if (n == 0) continue;
-                    if (n == 1)
-                    {
-                        minY = Proc.f.tileH * (j + 1);
-                        check = true;
-                        break;
-                    }
-                }
-                if (check)
-                    break;
-            }
-            yy += v.y * dt;
-            if (yy < minY)
-            {
-                yy = minY;
-                jumpForce = 0;
-            }
-            position.y = yy - rect.origin.y;
-        }
-        else if (v.y > 0)
-        {
-            float xx = position.x + rect.origin.x;
-            float yy = position.y + rect.origin.y + rect.size.height;
-            int x = (int)xx; x /= Proc.f.tileW;
-            int y = (int)yy; y /= Proc.f.tileH;
-            float maxY = Proc.f.tileY * Proc.f.tileH - 1;
-            bool check = false;
-
-            float k = (xx + rect.size.width) / Proc.f.tileW;
-            for (int j = y + 1; j < Proc.f.tileY; j++)
-            {
-                for (int i = x; i < k; i++)
-                {
-                    int n = Proc.f.tiles[Proc.f.tileX * j + i];
-                    if (n == 0) continue;
-                    if (n == 3 || n == 4) continue;
-
-                    maxY = Proc.f.tileH * j - 1;
-                    check = true;
-                    break;
-                }
-                if (check)
-                    break;
-            }
-            yy += v.y * dt;
-            if (yy > maxY)
-            {
-                jumping = false;
-                jumpForce = 0;
-                yy = maxY;
-            }
-            else
-                jumping = true;
-            position.y = yy - rect.origin.y - rect.size.height;
-        }
-    }
-    public virtual void paint(float dt, iPoint off) { }
+	public FObject att;
+	public iRect rt;
+	public int ap;
 }
 
-public class Player : FObject
+public class AttMgt
 {
-	
-	iImage[] imgs;
-	iImage imgCurr;
-	
+	AttInfo[] _ai;
+	AttInfo[] ai;
+	int aiNum;
 
+	public AttMgt()
+	{
+		_ai = new AttInfo[100];
+		for(int i=0; i<100; i++)
+			_ai[i] = new AttInfo();
+		ai = new AttInfo[100];
+		aiNum = 0;
+	}
 
-
-    void loadImage() 
-    { 
-        int i, j = (int)Behave.max;
-		imgs = new iImage[j];
-		for (i = 0; i < j; i++)
+	public void update(float dt, iPoint off)
+	{
+		iGUI.instance.setRGBA(1, 0, 1, 1);
+		for(int i=0; i<aiNum; i++)
 		{
-			iImage img;
-			if (i % 2 == 0)
+			AttInfo a = ai[i];
+
+			if( a.att == Proc.me.p )
 			{
-				img = new iImage();
-				for (int k = 0; k < 3; k++)
+				// enemy 공격
+				iRect dst;
+				for(int j=0; j<Proc.me.monsterNum; j++)
 				{
-					iStrTex st = new iStrTex(methodStCreateImage, rect.size.width, rect.size.height);
-					st.setString((i / 2) + "\n" + k);
-					img.add(st.tex);
+					iRect rt = a.rt;
+					rt.origin += off;
+					iGUI.instance.fillRect(rt);
+					Monster m = Proc.me.monster[j];
+					dst = m.rect;
+					dst.origin += m.position;
+					if( dst.containRect(a.rt) )
+					{
+						a.liveDt = a._liveDt;// kill rect
+						Debug.Log("test");
+						m.hp -= a.ap;
+						break;
+					}
 				}
 			}
-			else
+			else if( a.att != Proc.me.p )
 			{
-				img = imgs[i - 1].clone();
-				img.leftRight = true;
+				// player 공격
 			}
 
-			if (i < (int)Behave.walkLeft)
+			a.liveDt += dt;
+			if( a.liveDt > a._liveDt )
 			{
-				img.repeatNum = 0;
-				img.startAnimation();
+				aiNum--;
+				ai[i] = ai[aiNum];
+				i--;
 			}
-			else
-			{
-				img.repeatNum = 1;
-			}
-
-			imgs[i] = img;
 		}
-		be = Behave.waitLeft;
-		imgCurr = imgs[(int)be];
-
-		// test
-		//if (imgCurr.leftRight)
-		//{
-		//	be = Behave.waitRight;
-		//}
-		//be = Behave.attLeft;
-		//imgs[(int)be].startAnimation(cbAnimation, this);
-		//imgCurr = imgs[(int)be];
 	}
 
-	public void cbAnim(object obj)
+	public void add(FObject att)
 	{
-		Player p = (Player)obj;
-		p.be = (Behave)((int)p.be % 2);
-		p.imgCurr = p.imgs[(int)p.be];
+		for(int i=0; i< 100; i++)
+		{
+			AttInfo a = _ai[i];
+			if (a.liveDt < a._liveDt)
+				continue;
+			a.liveDt = 0;
+			a.att = att;
+			a.rt = new iRect(att.position.x, att.position.y, 100, 100);
+			a.ap = 1;
+
+			ai[aiNum] = a;
+			aiNum++;
+			return;
+		}
 	}
-    void cbAttAnim(object obj)
-    {
-        Player p = (Player)obj;
-        p.be = (Behave)(((int)p.be + 2));
-        p.imgCurr = p.imgs[(int)p.be];
-        if (p.be < Behave.jumpLeft)
-            p.imgCurr.startAnimation(cbAttAnim, p);
-        else
-            cbAnim(p);
-
-    }
-
-#if false
-    void methodStCreateImg(iStrTex st)
-    {
-        string[] str = st.str.Split("\n");
-        int be = int.Parse(str[0]);
-        int frame = int.Parse(str[1]);
-        //iImage imgs;
-        if(be == 0)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWait");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        else if( be == 1)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWalk0");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        else if (be == 3)
-        {
-            iGUI.instance.setRGBA(0, 0, 1, 1);
-            iGUI.instance.fillRect(0, 0, 50, 50);
-        }
-
-        iGUI.instance.setStringSize(25);
-        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-    }
-#else
-    void methodStCreateImage(iStrTex st)
-	{
-		string[] s = st.str.Split("\n");
-		int be = int.Parse(s[0]);
-		int frame = int.Parse(s[1]);
-
-		if( be==0 )// wait
-		{
-			iGUI.instance.setRGBA(1, 1, 1, 1);
-			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
-			iGUI.instance.setRGBA(1, 0, 0, 1);
-			iGUI.instance.fillRect(5, 20, 10, 10);
-
-			iGUI.instance.setStringRGBA(0, 0, 0, 1);
-		}
-		else if( be==3 )// att
-		{
-			iGUI.instance.setRGBA(0, 0, 1, 1);
-			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
-			iGUI.instance.setRGBA(0, 0, 0, 1);
-			iGUI.instance.fillRect(5, 20, 10, 10);
-
-			iGUI.instance.setStringRGBA(1, 0, 0, 1);
-		}
-
-		iGUI.instance.setStringSize(25);
-		iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
-		iGUI.instance.setRGBA(1, 1, 1, 1);
-	}
-#endif
-
-    bool down;
-    public Player()
-    {
-        maxHp = 100;
-        hp = maxHp;
-        position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 50, 50);
-        v = new iPoint(0, 0);
-
-        moveSpeed = 300;
-
-        down = false;
-        jumping = true;
-        jumpForce = 0;
-        preHeight = rect.size.height;
-        downHeight = preHeight / 2;
-        preY = rect.origin.y;
-
-        
-
-        MainCamera.methodKeyboard += keyboard;
-		loadImage();
-    }
-
-
-    float t = 0;
-    float cInterval = 2;
-    public override void paint(float dt, iPoint off)
-    {
-		iPoint p = position + rect.origin + off;
-		//iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-		imgCurr.paint(dt, p);
-        move(dt);
-        
-        if(be >Behave.att0Right && be < Behave.att2Left)
-        {
-            Attack att = new Attack(this);
-            att.paint(dt, off);
-        }
-
-		if( v.x != 0)
-		{
-			be = (Behave)((int)be / 2 * 2) + (v.x > 0 ? 1 : 0);
-			imgCurr = imgs[(int)be];
-		}
-
-		Monster m = checkCollision(rect);
-        t += dt;
-        if(m != null)
-        {
-            if (t > cInterval)
-            {
-                if (hp > 0)
-                    hp -= m.ap;
-                t = 0;
-            }
-        }
-    }
-
-
-
-    private bool CheckKey(int key, iKeyboard ik)
-    {
-        int k = (int)ik;
-        return (key & k) == k;
-    }
-
-    float preHeight;
-    float downHeight;
-
-    float preY;
-
-    public void keyboard(iKeystate stat, int key)
-    {
-        //v = new iPoint(0, 0);
-        if (stat == iKeystate.Moved)
-        {
-            if (CheckKey(key, iKeyboard.Left))
-            {
-                v.x = -1;
-            }
-            else if (CheckKey(key, iKeyboard.Right))
-            {
-                v.x = +1;
-            }
-			if (CheckKey(key, iKeyboard.Up))
-				;
-			else if (CheckKey(key, iKeyboard.Down))
-			{
-				if (!jumping)
-				{
-					down = true;
-					rect.origin.y = downHeight;
-					rect.size.height = downHeight;
-				}
-			}
-            if (CheckKey(key, iKeyboard.alt))
-            {
-                if (!jumping && !down)
-                {
-                    jumping = true;
-                    jumpForce = -700;
-                }
-            }
-        }
-
-        if (stat == iKeystate.Ended)
-        {
-            if (CheckKey(key, iKeyboard.Down))
-            {
-                down = false;
-                rect.origin.y = preY;
-                rect.size.height = preHeight;
-            }
-            v.x = 0;
-            v.y = 0;
-
-        }
-
-        if (stat == iKeystate.Began)
-        {
-            if(CheckKey(key, iKeyboard.ctrl))
-            {
-				be = (Behave)( (int)Behave.att0Left + (int)be %2 );
-				imgCurr = imgs[(int)be];
-				imgCurr.startAnimation(cbAttAnim, this);
-			}
-		}
-
-        if (v.x != 0 || v.y != 0)
-            v /= v.getLength();
-    }
-    public Monster checkCollision(iRect rt)
-    {
-        iRect src = rt;
-        src.origin += position;
-
-        iRect dst;
-        for (int i = 0; i < Proc.monsterNum; i++)
-        {
-            Monster m = Proc.monster[i];
-            dst = m.rect;
-            dst.origin += m.position;
-
-            if (dst.containRect(src))
-            {
-                return m;
-            }
-        }
-        return null;
-    }
-
-
 }
-
-enum MobState
-{
-    Idle = 0,
-    Move,
-    Attack,
-    Damaged,
-    Die,
-};
-
-public class Monster : FObject
-{
-    public delegate void MethodAI(float dt);
-
-    MethodAI methodAI = null;
-    MobState ms;
-
-    public Monster()
-    {
-        ap = 10;
-        alive = false;
-        position = new iPoint(0, 0);
-        rect = new iRect(0, 0, 60, 60);
-        v = new iPoint(1, 0);
-        methodAI = mobAI;
-        moveSpeed = 150;
-
-    }
-
-    public override void paint(float dt, iPoint off)
-    {
-        // draw
-        iPoint p = position + rect.origin + off;
-        iGUI.instance.setRGBA(0, 0, 0, 1);
-        iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
-        //move(dt);
-
-        Debug.Log($"off is {off.x}, {off.y}");
-        Debug.Log($"Monster PosX :{position.x}, Y :{position.y}");
-
-        if (methodAI != null)
-            methodAI(dt);
-    }
-
-    float t = 0;
-    public void mobAI(float dt)
-    {
-        int a;
-        t -= dt;
-        if (t < 0)
-        {
-            a = Random.Range(0, 2);
-            t = 2;
-            switch (a)
-            {
-                case 0:
-                    ms = MobState.Idle;
-                    break;
-                case 1:
-                    ms = MobState.Move;
-                    v.x = 1;
-                    break;
-            }
-
-        }
-        if ((int)ms == 0)
-            v.x = 0;
-        if ((int)ms == 1)
-        {
-            if (block)
-                v.x *= -1;
-            else
-                v.x *= +1;
-        }
-    }
-}
-public class Attack
-{
-    FObject attObj;
-    FObject hitObj;
-    iPoint position;
-    iRect aRect;
-
-    public Attack(FObject _attObj)
-    {
-        aRect = new iRect(0, 0, 100, 100);
-        attObj = _attObj;
-    }
-    public void paint(float dt, iPoint off)
-    {
-        iPoint p = attObj.position + off;
-        position = p;
-        if ((int)attObj.be % 2 > 0)
-        {
-            p.x += attObj.rect.size.width;
-        }
-        else
-            p.x -= 100;
-        aRect.origin.x = p.x;
-        aRect.origin.y = p.y;
-
-        iGUI.instance.setRGBA(1, 0, 0, 1);
-        iGUI.instance.fillRect(aRect);
-        Debug.Log($"aRectP.x : {aRect.origin.x}, aRectP.y :{aRect.origin.y}");
-        Debug.Log($"aRectMaxX : {aRect.origin.x + aRect.size.width}, aRectMaxY :{aRect.origin.y+ aRect.size.height}");
-
-        hitObj = collFObj();
-        Debug.Log(hitObj);
-        if (hitObj != null)
-        {
-            hitObj.hp -= attObj.ap;
-            Debug.Log(hitObj.hp);
-        }
-    }
-    private FObject collFObj()
-    {
-        iRect src = aRect;
-        src.origin += position;
-        iRect dst;
-        if(attObj.GetType() == typeof(Player))
-        {
-            for(int i = 0; i <Proc.monsterNum; i++)
-            {
-                Monster m = Proc.monster[i];
-                dst = m.rect;
-                dst.origin += m.position;
-
-                if (dst.containRect(src))
-                {
-                    Debug.Log(hitObj);
-                    return m;
-                }
-            }
-        }
-        else if(attObj.GetType() == typeof(Monster))
-        {
-            Player p = ((Proc)Main.curr).p;
-            dst = p.rect;
-            dst.origin += p.position;
-            if (dst.containRect(src))
-                return p;
-        }
-        Debug.Log(hitObj);
-        return null;
-    }
-}
-#endif

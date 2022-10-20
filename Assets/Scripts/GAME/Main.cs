@@ -7,7 +7,7 @@ using STD;
 public class Main 
 {
     public static Main me;
-    public static GObject curr, next;
+    public GObject curr, next;
 
     public Main()
     {
