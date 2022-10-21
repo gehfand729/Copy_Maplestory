@@ -13,16 +13,18 @@ public class Proc : GObject
     public Player p;
 	//public UI ui;
 
+	public int countLoad = 0;
+
 	public AttMgt am;
 
     public override void load()
     {
 		me = this;
+        loadMonster();
 
         f = new Field();
         p = new Player();
         //ui = new UI();
-        loadMonster();
 
 		am = new AttMgt();
 
@@ -392,6 +394,7 @@ public class Proc : GObject
             {
                 _monster[i].alive = true;
                 _monster[i].position = p;
+				_monster[i].loadImage();
                 // 체력 만땅
 
                 monster[monsterNum] = _monster[i];
@@ -597,8 +600,9 @@ public class AttMgt
 					if( dst.containRect(a.rt) )
 					{
 						a.liveDt = a._liveDt;// kill rect
-						Debug.Log("test");
 						m.hp -= a.ap;
+						Debug.Log(m.hp);
+						m.be = FObject.Behave.hitLeft;
 						break;
 					}
 				}
@@ -606,6 +610,20 @@ public class AttMgt
 			else if( a.att != Proc.me.p )
 			{
 				// player 공격
+				iRect dst;
+				iRect rt = a.rt;
+				rt.origin += off;
+				iGUI.instance.fillRect(rt);
+				Player p = Proc.me.p;
+				dst = p.rect;
+				dst.origin += p.position;
+				if (dst.containRect(a.rt))
+				{
+					a.liveDt = a._liveDt;// kill rect
+					Debug.Log("test");
+					p.hp -= a.ap;
+					break;
+				}
 			}
 
 			a.liveDt += dt;

@@ -17,6 +17,9 @@ public class FObject
 		att1Left,
 		att1Right,
 
+		hitLeft,
+		hitRight,
+
 		jumpLeft,
 		jumpRight,
 
@@ -32,7 +35,8 @@ public class FObject
 	public bool jumping;
 	public float jumpForce;
 
-	public bool block;
+	public bool lBlock = false;
+	public bool rBlock = false;
 
 	public int hp, maxHp, ap;
 
@@ -77,10 +81,10 @@ public class FObject
 			if (xx < minX)
 			{
 				xx = minX;
-				block = true;
+				lBlock = true;
 			}
 			else
-				block = false;
+				lBlock = false;
 			position.x = xx - rect.origin.x;
 		}
 		else if (v.x > 0)
@@ -112,10 +116,10 @@ public class FObject
 			if (xx > maxX)
 			{
 				xx = maxX;
-				block = true;
+				rBlock = true;
 			}
 			else
-				block = false;
+				rBlock = false;
 			position.x = xx - rect.origin.x - rect.size.width;
 		}
 		if (v.y < 0)

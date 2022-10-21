@@ -45,15 +45,6 @@ public class Player : FObject
 		}
 		be = Behave.waitLeft;
 		imgCurr = imgs[(int)be];
-
-		// test
-		//if (imgCurr.leftRight)
-		//{
-		//	be = Behave.waitRight;
-		//}
-		//be = Behave.attLeft;
-		//imgs[(int)be].startAnimation(cbAnimation, this);
-		//imgCurr = imgs[(int)be];
 	}
 
 	public void cbAnim(object obj)
@@ -72,12 +63,12 @@ public class Player : FObject
 		}
 		p.be = (Behave)(((int)p.be + 2));
 		p.imgCurr = p.imgs[(int)p.be];
-		if (p.be < Behave.jumpLeft)
+		imgCurr._frameDt = 0.1f;
+		if (p.be < Behave.hitLeft)
 			p.imgCurr.startAnimation(cbAttAnim, p);
 		else
 			cbAnim(p);
 	}
-
 #if false
     void methodStCreateImg(iStrTex st)
     {
@@ -190,7 +181,7 @@ public class Player : FObject
 			be = (Behave)((int)be / 2 * 2) + (v.x > 0 ? 1 : 0);
 			imgCurr = imgs[(int)be];
 		}
-
+		
 		Monster m = checkCollision(rect);
 		t += dt;
 		if (m != null)
@@ -268,6 +259,7 @@ public class Player : FObject
 			{
 				be = (Behave)((int)Behave.att0Left + (int)be % 2);
 				imgCurr = imgs[(int)be];
+				imgCurr._frameDt = 0.1f;
 				imgCurr.startAnimation(cbAttAnim, this);
 			}
 		}
