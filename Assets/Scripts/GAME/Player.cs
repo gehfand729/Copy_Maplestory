@@ -235,7 +235,7 @@ public class Player : FObject
 				if (!jumping && !down)
 				{
 					jumping = true;
-					jumpForce = -700;
+					jumpForce = -710;
 				}
 			}
 		}

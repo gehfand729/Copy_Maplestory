@@ -23,6 +23,9 @@ public class FObject
 		jumpLeft,
 		jumpRight,
 
+		dieLeft,
+		dieRight,
+
 		max
 	}
 	public Behave be;
@@ -49,6 +52,7 @@ public class FObject
 
 	public void move(float dt)
 	{
+		lBlock = false; rBlock = false;
 		iPoint v = this.v * moveSpeed;
 		jumpForce += gravity * dt;
 		v.y += jumpForce;
@@ -83,8 +87,6 @@ public class FObject
 				xx = minX;
 				lBlock = true;
 			}
-			else
-				lBlock = false;
 			position.x = xx - rect.origin.x;
 		}
 		else if (v.x > 0)
@@ -118,8 +120,6 @@ public class FObject
 				xx = maxX;
 				rBlock = true;
 			}
-			else
-				rBlock = false;
 			position.x = xx - rect.origin.x - rect.size.width;
 		}
 		if (v.y < 0)

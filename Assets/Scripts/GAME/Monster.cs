@@ -2,6 +2,7 @@
 using UnityEngine;
 
 using STD;
+using static UnityEditor.Progress;
 
 public class Monster : FObject
 {
@@ -14,33 +15,44 @@ public class Monster : FObject
 		ap = 10;
 		alive = false;
 		position = new iPoint(0, 0);
-		rect = new iRect(0, 0, 60, 60);
+		rect = new iRect(0, 0, 63, 60);
 		v = new iPoint(0, 0);
 		moveSpeed = 150;
 
-		hp = 100;
+		hp = 2;
 
 		methodAI = mobAI;
 	}
 
-	iImage[] imgs;
-	iImage imgCurr;
-
+	public iImage[] imgs;
+	public iImage imgCurr;
+	iStrTex animSt;
 	public void loadImage()
 	{
 		int beIndex, maxBe = (int)Behave.max;
 		imgs = new iImage[maxBe];
+		int maxFrame = 2;
 		for(beIndex = 0; beIndex < maxBe; beIndex++)
 		{
 			iImage img;
-			if(beIndex % 2 == 0)
+			if (beIndex % 2 == 0)
 			{
-				img = new iImage();
-				for(int frame = 0; frame < 3; frame++)
+				int be = beIndex / 2;
+				if (be == 0)
+					maxFrame = 2;
+				else if (be == 1)
+                    maxFrame = 3;
+				else if (be == 4)
+                    maxFrame = 1;
+				else if (be == 6)
+                    maxFrame = 3;
+
+                img = new iImage();
+				for(int frame = 0; frame < maxFrame; frame++)
 				{
-					iStrTex st = new iStrTex(methodStBe, rect.size.width, rect.size.height);
-					st.setString((beIndex / 2) + "\n" + frame);
-					img.add(st.tex);
+					animSt = new iStrTex(methodStBe, rect.size.width, rect.size.height);
+					animSt.setString((beIndex / 2) + "\n" + frame);
+					img.add(animSt.tex);
 				}
 			}
 			else
@@ -51,7 +63,8 @@ public class Monster : FObject
 			if (beIndex < (int)Behave.walkLeft)
 			{
 				img.repeatNum = 0;
-				img.startAnimation();
+                img._frameDt = 0.5f;
+                img.startAnimation();
 			}
 			else
 			{
@@ -70,26 +83,34 @@ public class Monster : FObject
 		int be = int.Parse(s[0]);
 		int frame = int.Parse(s[1]);
 
-		if( be == 0)
+		Texture tex;
+		if (be == 0)
 		{
-			iGUI.instance.setRGBA(0, 1, 0, 1);
-			iGUI.instance.fillRect(0,0,rect.size.width, rect.size.height);
+			tex = Resources.Load<Texture>("OrangeMush/Stand/mobStand" + frame);
+			iGUI.instance.setRGBA(1, 1, 1, 1);
+			iGUI.instance.drawImage(tex, 0, rect.size.width - tex.height, iGUI.TOP | iGUI.LEFT);
 		}
-		else if( be == 1)
+		else if (be == 1)
 		{
-			iGUI.instance.setRGBA(1, 0, 1, 1);
-			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
-
-			iGUI.instance.setStringSize(25);
-			iGUI.instance.setStringRGBA(0, 0, 0, 1);
-			iGUI.instance.drawString("w", new iPoint(rect.size.width / 2, rect.size.height / 2));
-		}
-		else if(be == 4)
+            tex = Resources.Load<Texture>("OrangeMush/Move/mobMove" + frame);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, rect.size.width - tex.height, iGUI.TOP | iGUI.LEFT);
+        }
+        else if (be == 4)
 		{
-			iGUI.instance.setRGBA(1, 0, 0, 1);
-			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
+            tex = Resources.Load<Texture>("OrangeMush/Hit/mobHit0");
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, rect.size.width - tex.height, iGUI.TOP | iGUI.LEFT);
+        }
+		else if(be == 6)
+		{
+            tex = Resources.Load<Texture>("OrangeMush/Die/mobDie" + frame);
+            iGUI.instance.setRGBA(1, 1, 1, 1);
+            iGUI.instance.drawImage(tex, 0, rect.size.width - tex.height, iGUI.TOP | iGUI.LEFT);
 		}
-	}
+        iGUI.instance.setStringSize(25);
+        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
+    }
 
 	public void cbAnim(object obj)
 	{
@@ -112,22 +133,33 @@ public class Monster : FObject
 	float t = 0;
 	public void mobAI(float dt)
 	{
-		imgCurr = imgs[(int)be];
-		imgCurr.startAnimation(cbAnim, this);
 		int a;
 		t -= dt;
-		if (t < 0)
+		if (be != (Behave)((int)Behave.dieLeft + (int)be % 2))
 		{
-			a = Random.Range(0, 2);
-			t = 2;
-			switch (a)
+			if (t < 0)
 			{
-				case 0:
-					be = (Behave)((int)Behave.waitLeft + (int)be % 2);
-					break;
-				case 1:
-					be = (Behave)((int)Behave.walkLeft + (int)be % 2);
-					break;
+				a = Random.Range(0, 2);
+				t = 2;
+				switch (a)
+				{
+					case 0:
+						be = (Behave)((int)Behave.waitLeft + (int)be % 2);
+						break;
+					case 1:
+						be = (Behave)((int)Behave.walkLeft + (int)be % 2);
+						break;
+				}
+				imgCurr = imgs[(int)be];
+				
+				imgCurr.startAnimation();
+			}
+			if (hp < 1)
+			{
+				be = (Behave)((int)Behave.dieLeft + (int)be % 2);
+				imgCurr = imgs[(int)be];
+				imgCurr._frameDt = 0.2f;
+				imgCurr.startAnimation();
 			}
 		}
 
@@ -139,9 +171,19 @@ public class Monster : FObject
 		if ((int)be / 2 == 1)
 		{
 			if (lBlock)
+			{
 				be = Behave.walkRight;
+				imgCurr = imgs[(int)be];
+                imgCurr._frameDt = 0.2f;
+                imgCurr.startAnimation();
+			}
 			if (rBlock)
+			{
 				be = Behave.walkLeft;
+				imgCurr = imgs[(int)be];
+                imgCurr._frameDt = 0.2f;
+                imgCurr.startAnimation();
+			}
 			if ((int)be % 2 == 0)
 				v.x = -1;
 			else
@@ -151,5 +193,13 @@ public class Monster : FObject
 		{
 			v.x = 0;
 		}
+	}
+}
+
+public class MushRoom : Monster
+{
+	public void loadImage()
+	{
+
 	}
 }

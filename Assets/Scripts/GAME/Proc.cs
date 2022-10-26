@@ -601,8 +601,9 @@ public class AttMgt
 					{
 						a.liveDt = a._liveDt;// kill rect
 						m.hp -= a.ap;
-						Debug.Log(m.hp);
 						m.be = FObject.Behave.hitLeft;
+                        m.imgCurr = m.imgs[(int)m.be];
+                        m.imgCurr.startAnimation(m.cbAnim, m);
 						break;
 					}
 				}
@@ -620,7 +621,6 @@ public class AttMgt
 				if (dst.containRect(a.rt))
 				{
 					a.liveDt = a._liveDt;// kill rect
-					Debug.Log("test");
 					p.hp -= a.ap;
 					break;
 				}
