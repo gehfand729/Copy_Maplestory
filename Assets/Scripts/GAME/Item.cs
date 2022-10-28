@@ -12,7 +12,7 @@ public class Item
 	int kind;
 	iImage image;
 	public iPoint position;
-	iRect rect;
+	public iRect rect;
 
 	public Item()
 	{
@@ -23,6 +23,7 @@ public class Item
 	public void paint(float dt, iPoint off)
 	{
 		iPoint p = position + rect.origin + off;
+		iGUI.instance.setRGBA(1, 0, 0, 1);
 		iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 	}
 }

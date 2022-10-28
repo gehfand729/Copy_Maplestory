@@ -44,6 +44,8 @@ public class Proc : GObject
 		drawPopUI(dt);
 		//ui.paint(dt);
 
+		drawItem(dt, f.off);
+
 		am.update(dt, f.off);
 	}
 
@@ -104,13 +106,13 @@ public class Proc : GObject
 	// Inventory ===============================================================
 	iPopup popInven = null;
 	iImage[] imgInven;
-	iImage img;
-	iPoint offInven;
-	Texture texInven;
-	iRect rectInven;
+	iPoint posInven;
+
+	iStrTex stInven;
 
 	void createPopInven()
 	{
+#if false
 		// inventory
 		iPopup pop = new iPopup();
 		iImage img = new iImage();
@@ -126,28 +128,81 @@ public class Proc : GObject
 		pop.closePoint = pop.openPoint;
 
 		popInven = pop;
+#else
+		iPopup pop = new iPopup();
+		iImage img = new iImage();
+
+		imgInven = new iImage[1];
+
+		stInven = new iStrTex(methodStInven, 197, 380);
+		stInven.setString(850 + "/" + 200);
+		img.add(stInven.tex);
+		imgInven[0] = img;
+		
+		pop.add(img);
+
+		pop.style = iPopupStyle.alpha;
+
+		popInven = pop;
+#endif
+	}
+	void methodStInven(iStrTex st)
+	{
+		Texture tex = Resources.Load<Texture>("invenBg1");
+		string[] strs = st.str.Split("/");
+		float x = float.Parse(strs[0]);
+		float y = float.Parse(strs[1]);
+		setRGBA(1, 1, 1, 1);
+		drawImage(tex, 0, 0, TOP | LEFT);
+		popInven.closePoint = new iPoint(x, y);
+
 	}
 	void drawPopInven(float dt)
 	{
+		stInven.setString(posInven.x + "/" + posInven.y);
 		popInven.paint(dt);
 	}
-	void keyboardPopInven(iKeystate stat, int key)
-	{
-
-	}
-
+	bool drag = false;
+	iPoint mouseInven = new iPoint();
 	void mousePopInven(iKeystate stat, iPoint point)
 	{
-	}
-
-	void wheelPopInven(iPoint wheel)
-	{
-
-	}
-
-	void moveInven(iPoint point)
-	{
-		offInven = point;
+		iPopup pop = popInven;
+		iImage[] img = imgInven;
+		if (pop.state == iPopupState.proc)
+		{
+			int i, j = -1;
+			
+			switch (stat)
+			{
+				case iKeystate.Began:
+					i = pop.selected;
+					if (i == -1) break;
+					drag = true;
+					mouseInven = point - posInven;
+					break;
+				case iKeystate.Moved:
+					for (i = 0; i < img.Length; i++)
+					{
+						if (img[i].topTouchRect(popInven.closePoint).containPoint(point))
+						{
+							j = i;
+							break;
+						}
+					}
+					if(pop.selected != j)
+						pop.selected = j;
+					if (drag)
+					{
+						posInven = point - mouseInven;
+					}
+					break;
+				case iKeystate.Ended:
+					i = pop.selected;
+					drag = false;
+					if(i == -1) break;
+					break;
+			}
+		}
 	}
 
 	// Info =====================================================================
@@ -363,7 +418,7 @@ public class Proc : GObject
 	Monster[] _monster;
 	public Monster[] monster;
 	public int monsterNum;
-	public iImage[] imgs;
+	public iImage[] imgsMonster;
 
 	void loadMonster()
 	{
@@ -399,7 +454,7 @@ public class Proc : GObject
 				_monster[i].alive = true;
 				_monster[i].position = p;
 				_monster[i].be = FObject.Behave.waitLeft;
-				_monster[i].imgCurr = imgs[(int)_monster[i].be];
+				_monster[i].imgCurr = imgsMonster[(int)_monster[i].be];
 				_monster[i].hp = 2;
 				// 체력 만땅
 
@@ -414,7 +469,7 @@ public class Proc : GObject
 	public void loadMonsterImage()
 	{
 		int beIndex, maxBe = (int)FObject.Behave.max;
-		imgs = new iImage[maxBe];
+		imgsMonster = new iImage[maxBe];
 		int maxFrame = 2;
 		for (beIndex = 0; beIndex < maxBe; beIndex++)
 		{
@@ -441,7 +496,7 @@ public class Proc : GObject
 			}
 			else
 			{
-				img = imgs[beIndex - 1].clone();
+				img = imgsMonster[beIndex - 1].clone();
 				img.leftRight = true;
 			}
 			if (beIndex < (int)FObject.Behave.att0Left)
@@ -455,7 +510,7 @@ public class Proc : GObject
 				img.repeatNum = 1;
 			}
 
-			imgs[beIndex] = img;
+			imgsMonster[beIndex] = img;
 		}
 		
 	}
@@ -495,11 +550,22 @@ public class Proc : GObject
 		drawString("" + (1 + frame), 25, 25, VCENTER | HCENTER);
 	}
 #endif
-	// item===============================================
-	public Item[] items;
-	void drawItems(float dt, iPoint off)
+
+	// item ================================
+	// 아이템을 먹었을때를 고려해야함.
+
+	public Item[] items = new Item[50];
+	public int itemNum = 0;
+
+	public void dropItem(Item i, iPoint p)
 	{
-		for(int i = 0; i < 1; i++)
+		items[itemNum] = i;
+		items[itemNum].position = p;
+		itemNum++;
+	}
+	public void drawItem(float dt, iPoint off)
+	{
+		for(int i = 0; i<itemNum; i++)
 		{
 			items[i].paint(dt, off);
 		}

@@ -172,6 +172,17 @@ namespace STD
 								tex.tex.width + s.width,
 								tex.tex.height + s.height);
 		}
+		public iRect topTouchRect(iPoint off, iSize s)
+		{
+			return new iRect(	position.x + off.x,
+								position.y + off.y,
+								s.width,
+								s.height);
+		}
+		public iRect topTouchRect(iPoint off)
+		{
+			return topTouchRect(off, new iSize(tex.tex.width, 22));
+		}
 
 		public iPoint center()
 		{
