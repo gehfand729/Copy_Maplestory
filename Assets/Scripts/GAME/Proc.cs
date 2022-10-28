@@ -53,6 +53,7 @@ public class Proc : GObject
 	public override void key(iKeystate stat, iPoint point)
 	{
 		mousePopInven(stat, point);
+		mousePopMiniMap(stat, point);
 		// ui
 		// f
 		// p
@@ -135,7 +136,6 @@ public class Proc : GObject
 		imgInven = new iImage[1];
 
 		stInven = new iStrTex(methodStInven, 197, 380);
-		stInven.setString(850 + "/" + 200);
 		img.add(stInven.tex);
 		imgInven[0] = img;
 		
@@ -149,7 +149,7 @@ public class Proc : GObject
 	void methodStInven(iStrTex st)
 	{
 		Texture tex = Resources.Load<Texture>("invenBg1");
-		string[] strs = st.str.Split("/");
+		string[] strs = st.str.Split("\n");
 		float x = float.Parse(strs[0]);
 		float y = float.Parse(strs[1]);
 		setRGBA(1, 1, 1, 1);
@@ -159,10 +159,10 @@ public class Proc : GObject
 	}
 	void drawPopInven(float dt)
 	{
-		stInven.setString(posInven.x + "/" + posInven.y);
+		stInven.setString(posInven.x + "\n" + posInven.y);
 		popInven.paint(dt);
 	}
-	bool drag = false;
+	bool dragInven = false;
 	iPoint mouseInven = new iPoint();
 	void mousePopInven(iKeystate stat, iPoint point)
 	{
@@ -177,7 +177,7 @@ public class Proc : GObject
 				case iKeystate.Began:
 					i = pop.selected;
 					if (i == -1) break;
-					drag = true;
+					dragInven = true;
 					mouseInven = point - posInven;
 					break;
 				case iKeystate.Moved:
@@ -191,14 +191,14 @@ public class Proc : GObject
 					}
 					if(pop.selected != j)
 						pop.selected = j;
-					if (drag)
+					if (dragInven)
 					{
 						posInven = point - mouseInven;
 					}
 					break;
 				case iKeystate.Ended:
 					i = pop.selected;
-					drag = false;
+					dragInven = false;
 					if(i == -1) break;
 					break;
 			}
@@ -290,8 +290,9 @@ public class Proc : GObject
 
 	// miniMap =====================================================================
 	iPopup popMiniMap = null;
+	iImage[] imgMiniMap;
 	iStrTex stMiniMap;
-	iPoint pp;
+	iPoint posMiniMap;
 
 	string worldName, mapName;
 
@@ -305,6 +306,8 @@ public class Proc : GObject
 		iPopup pop = new iPopup();
 		iImage img = new iImage();
 
+		imgMiniMap = new iImage[1];
+
 		worldName = "리프레";
 		mapName = "용의 둥지";
 
@@ -316,9 +319,9 @@ public class Proc : GObject
 		miniMapH = f.tileY * miniTileH;
 
 		stMiniMap = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
-		stMiniMap.setString(worldName + "\n" + mapName);
 
 		img.add(stMiniMap.tex);
+        imgMiniMap[0] = img;
 		pop.add(img);
 
 		popMiniMap = pop;
@@ -331,6 +334,10 @@ public class Proc : GObject
 		string[] str = st.str.Split("\n");
 		string worldName = str[0];
 		string mapName = str[1];
+		float posX = float.Parse(str[2]);
+		float posY = float.Parse(str[3]);
+
+		popMiniMap.closePoint = new iPoint(posX, posY);
 
 		for (int i = 0; i < f.tileX * f.tileY; i++)
 		{
@@ -364,9 +371,54 @@ public class Proc : GObject
 		drawString(mapName, 1, 24, TOP | LEFT);
 	}
 
+	bool dragMiniMap = false;
+	iPoint mouseMiniMap = new iPoint();
+	void mousePopMiniMap(iKeystate stat, iPoint point)
+	{
+		iPopup pop = popMiniMap;
+		iImage[] img = imgMiniMap;
+		if (pop.state == iPopupState.proc)
+		{
+			int i, j = -1;
+
+			switch (stat)
+			{
+				case iKeystate.Began:
+					i = pop.selected;
+					if (i == -1) break;
+					dragMiniMap = true;
+					mouseMiniMap = point - posMiniMap;
+					break;
+				case iKeystate.Moved:
+					for (i = 0; i < img.Length; i++)
+					{
+						if (img[i].topTouchRect(pop.closePoint).containPoint(point))
+						{
+							j = i;
+							break;
+						}
+					}
+					if (pop.selected != j)
+						pop.selected = j;
+					if (dragMiniMap)
+					{
+						posMiniMap = point - mouseMiniMap;
+					}
+					break;
+				case iKeystate.Ended:
+					i = pop.selected;
+					dragMiniMap = false;
+					if (i == -1) break;
+					break;
+			}
+		}
+	}
+
 	iPoint pPos;
 	void drawPopMiniMap(float dt)
 	{
+		stMiniMap.setString(worldName + "\n" + mapName + "\n" + posMiniMap.x + "\n" + posMiniMap.y);
+
 		popMiniMap.paint(dt);
 		setRGBA(1, 1, 0, 1);
 		pPos = p.position * miniRatio;
@@ -509,10 +561,8 @@ public class Proc : GObject
 			{
 				img.repeatNum = 1;
 			}
-
 			imgsMonster[beIndex] = img;
 		}
-		
 	}
 
 	void methodStBe(iStrTex st)
