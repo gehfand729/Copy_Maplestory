@@ -104,8 +104,11 @@ public class Proc : GObject
 		drawPopSetting(dt);
 	}
 
-	// Inventory ===============================================================
-	iPopup popInven = null;
+    // Inventory ===============================================================
+	// 인벤토리의 창의 격자는 그대로 있고 스크롤시 아이템의 이미지가 로드되냐 안되냐로 나뉨.
+	// 인벤토리는 기본적으로 배열의 구조를 가지고 있음 ex) 4*n
+	// 배열의 크기는 4*n임.
+    iPopup popInven = null;
 	iImage[] imgInven;
 	iPoint posInven;
 
@@ -113,23 +116,6 @@ public class Proc : GObject
 
 	void createPopInven()
 	{
-#if false
-		// inventory
-		iPopup pop = new iPopup();
-		iImage img = new iImage();
-		imgInven = new iImage[1];
-		texInven = Resources.Load<Texture>("invenBg1");
-		iTexture tex = new iTexture(texInven);
-		rectInven = new iRect(0, 0, texInven.width, 30);
-		img.add(tex);
-		imgInven[0] = img;
-		pop.add(img);
-
-		pop.openPoint = new iPoint(500, 300);
-		pop.closePoint = pop.openPoint;
-
-		popInven = pop;
-#else
 		iPopup pop = new iPopup();
 		iImage img = new iImage();
 
@@ -144,16 +130,20 @@ public class Proc : GObject
 		pop.style = iPopupStyle.alpha;
 
 		popInven = pop;
-#endif
 	}
 	void methodStInven(iStrTex st)
 	{
 		Texture tex = Resources.Load<Texture>("invenBg1");
-		string[] strs = st.str.Split("\n");
+		drawImage(tex, 0, 0, TOP | LEFT);
+        tex = Resources.Load<Texture>("invenBg2");
+		drawImage(tex, 6, 23, TOP | LEFT);
+        tex = Resources.Load<Texture>("invenBg3");
+        drawImage(tex, 7, 46, TOP | LEFT);
+
+        string[] strs = st.str.Split("\n");
 		float x = float.Parse(strs[0]);
 		float y = float.Parse(strs[1]);
 		setRGBA(1, 1, 1, 1);
-		drawImage(tex, 0, 0, TOP | LEFT);
 		popInven.closePoint = new iPoint(x, y);
 
 	}

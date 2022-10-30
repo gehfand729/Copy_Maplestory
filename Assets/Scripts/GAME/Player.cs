@@ -286,4 +286,24 @@ public class Player : FObject
 		}
 		return null;
 	}
+
+    public Item checkItemCollision(iRect rt)
+    {
+        iRect src = rt;
+        src.origin += position;
+
+        iRect dst;
+        for (int i = 0; i < Proc.me.monsterNum; i++)
+        {
+			Item it = ;
+            dst = it.rect;
+            dst.origin += it.position;
+
+            if (dst.containRect(src))
+            {
+                return it;
+            }
+        }
+        return null;
+    }
 }
