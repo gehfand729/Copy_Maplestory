@@ -143,10 +143,24 @@ public class Player : FObject
 #endif
 
 	bool down;
+	int lv;
+	public int getlv() { return lv; }
+	public void setLv(int l) { lv = l; }
+
+	int exp, maxExp;
+	public int getExp() { return exp; }
+	public void addExp(int e) { exp += e; }
+	public int getMaxExp() { return maxExp; }
+	public void setMaxExp(int maxE) { maxExp = maxE; }
+
 	public Player()
 	{
 		maxHp = 100;
 		hp = maxHp;
+		lv = 1;
+		exp = 0;
+		maxExp = 7;
+
 		position = new iPoint(0, 0);
 		rect = new iRect(0, 0, 50, 50);
 		v = new iPoint(0, 0);
@@ -160,21 +174,19 @@ public class Player : FObject
 		downHeight = preHeight / 2;
 		preY = rect.origin.y;
 
-
-
 		MainCamera.methodKeyboard += keyboard;
 		loadImage();
 	}
 
-
 	float t = 0;
 	float cInterval = 2;
+
 	public override void paint(float dt, iPoint off)
 	{
 		iPoint p = position + rect.origin + off;
-		//iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 		imgCurr.paint(dt, p);
 		move(dt);
+		calExp();
 
 		if (v.x != 0)
 		{
@@ -230,7 +242,7 @@ public class Player : FObject
 					rect.size.height = downHeight;
 				}
 			}
-			if (CheckKey(key, iKeyboard.alt))
+			if (CheckKey(key, iKeyboard.Alt))
 			{
 				if (!jumping && !down)
 				{
@@ -255,18 +267,35 @@ public class Player : FObject
 
 		if (stat == iKeystate.Began)
 		{
-			if (CheckKey(key, iKeyboard.ctrl))
+			if (CheckKey(key, iKeyboard.Ctrl))
 			{
 				be = (Behave)((int)Behave.att0Left + (int)be % 2);
 				imgCurr = imgs[(int)be];
 				imgCurr._frameDt = 0.1f;
 				imgCurr.startAnimation(cbAttAnim, this);
 			}
+			if(CheckKey(key, iKeyboard.Z))
+            {
+				Item item = checkItemCollision(rect);
+				if (item != null)
+                {
+					Proc.me.removeItem(item);
+                }
+            }
 		}
 
 		if (v.x != 0 || v.y != 0)
 			v /= v.getLength();
 	}
+	void calExp()
+	{
+		if (exp > maxExp - 1)
+		{
+			lv++;
+			exp = exp - maxExp;
+		}
+	}
+
 	public Monster checkCollision(iRect rt)
 	{
 		iRect src = rt;
@@ -293,9 +322,9 @@ public class Player : FObject
         src.origin += position;
 
         iRect dst;
-        for (int i = 0; i < Proc.me.monsterNum; i++)
+        for (int i = 0; i < Proc.me.itemNum; i++)
         {
-			Item it = ;
+			Item it = Proc.me.items[i];
             dst = it.rect;
             dst.origin += it.position;
 

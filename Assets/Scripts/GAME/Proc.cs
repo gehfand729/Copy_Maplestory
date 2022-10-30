@@ -64,7 +64,7 @@ public class Proc : GObject
 		// ui
 		if (stat == iKeystate.Began)
 		{
-			if ((key & (int)iKeyboard.i) == (int)(iKeyboard.i))
+			if ((key & (int)iKeyboard.I) == (int)(iKeyboard.I))
 			{
 				if (popInven.bShow == false)
 					popInven.show(true);
@@ -78,7 +78,7 @@ public class Proc : GObject
 			//	else if (popSetting.state == iPopupState.proc)
 			//		popSetting.show(false);
 			//}
-			if ((key & (int)iKeyboard.esc) == (int)(iKeyboard.esc))
+			if ((key & (int)iKeyboard.Esc) == (int)(iKeyboard.Esc))
 			{
 				addMonster(new iPoint(4 * f.tileW, 10 * f.tileH));
 			}
@@ -96,6 +96,7 @@ public class Proc : GObject
 		createPopInven();
 		createPopSetting();
 	}
+
 	void drawPopUI(float dt)
 	{
 		drawPopInfo(dt);
@@ -104,10 +105,11 @@ public class Proc : GObject
 		drawPopSetting(dt);
 	}
 
-    // Inventory ===============================================================
+    // Inventory =====================================================================
 	// 인벤토리의 창의 격자는 그대로 있고 스크롤시 아이템의 이미지가 로드되냐 안되냐로 나뉨.
 	// 인벤토리는 기본적으로 배열의 구조를 가지고 있음 ex) 4*n
 	// 배열의 크기는 4*n임.
+
     iPopup popInven = null;
 	iImage[] imgInven;
 	iPoint posInven;
@@ -197,7 +199,7 @@ public class Proc : GObject
 
 	// Info =====================================================================
 	iPopup popInfo = null;
-	int lv, hp, maxHp, minHp, mp, maxMp, minMp;
+	int lv, hp, maxHp, minHp, mp, maxMp, minMp, exp, maxExp;
 	iStrTex stInfo;
 	void createPopInfo()
 	{
@@ -229,8 +231,21 @@ public class Proc : GObject
 
 		string[] strs = st.str.Split("\n");
 		int lv = int.Parse(strs[0]);
-		float hp = int.Parse(strs[1]);
-		float mp = int.Parse(strs[2]);
+		float hp = float.Parse(strs[1]);
+		float mp = float.Parse(strs[2]);
+		int exp = int.Parse(strs[3]);
+		int maxExp = int.Parse(strs[4]);
+
+		float expPer = 0.0f;
+		expPer = 1.0f * exp / maxExp;
+		string result = string.Format("{0:0.#0}", expPer);
+		// for testing
+
+		setStringRGBA(1, 1, 1, 1);
+		drawString(lv.ToString(), 0, 0, TOP | LEFT);
+		drawString(exp.ToString(), 30, 0, TOP | LEFT);
+		drawString(result, 60, 0, TOP | LEFT);
+
 		//hp = p.hp;
 		if (hp < minHp)
 		{
@@ -273,7 +288,10 @@ public class Proc : GObject
 	void drawPopInfo(float dt)
 	{
 		hp = p.hp;
-		stInfo.setString(lv + "\n" + hp + "\n" + mp);
+		exp = p.getExp();
+		lv = p.getlv();
+		maxExp = p.getMaxExp();
+		stInfo.setString(lv + "\n" + hp + "\n" + mp + "\n" + exp + "\n" + maxExp);
 
 		popInfo.paint(dt);
 	}
@@ -455,7 +473,6 @@ public class Proc : GObject
 		popSetting.paint(dt);
 	}
 
-
 	// mob ========================================================
 	Monster[] _monster;
 	public Monster[] monster;
@@ -603,6 +620,7 @@ public class Proc : GObject
 		items[itemNum].position = p;
 		itemNum++;
 	}
+
 	public void drawItem(float dt, iPoint off)
 	{
 		for(int i = 0; i<itemNum; i++)
@@ -610,6 +628,19 @@ public class Proc : GObject
 			items[i].paint(dt, off);
 		}
 	}
+
+	public void removeItem(Item item)
+    {
+		for(int i = 0; i<itemNum; i++)
+        {
+            if (items[i] == item)
+            {
+				itemNum--;
+				items[i] = items[itemNum];
+				i--;
+            }
+        }
+    }
 }
 
 

@@ -21,11 +21,13 @@ namespace STD
 		Right = 2,
 		Up = 4,
 		Down = 8,
-		alt = 16,
-		i = 32,
-		a = 64,
-		esc = 128,
-		ctrl = 256,
+		Alt = 16,
+		I = 32,
+		A = 64,
+		Esc = 128,
+		Ctrl = 256,
+		Z = 512,
+
 	};
 
 	public delegate void MethodKeyboard(iKeystate stat, int key);

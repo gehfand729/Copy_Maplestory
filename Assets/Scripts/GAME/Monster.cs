@@ -9,10 +9,14 @@ public class Monster : FObject
 	public delegate void MethodAI(float dt);
 
 	MethodAI methodAI = null;
-
+	
+	int exp;
+	int getExp() { return exp; }
+	void setExp(int e) { exp = e; }
 	public Monster()
 	{
 		ap = 10;
+		exp = 10;
 		alive = false;
 		position = new iPoint(0, 0);
 		rect = new iRect(0, 0, 63, 60);
@@ -56,7 +60,6 @@ public class Monster : FObject
 	}
 
 	float t = 0;
-	
 
 	public void mobAI(float dt)
 	{
@@ -91,6 +94,8 @@ public class Monster : FObject
 				Item i = new Item();
 				Proc.me.dropItem(i, new iPoint(position.x + rect.size.width/2,
 					position.y + rect.size.height - i.rect.size.height));
+
+				Proc.me.p.addExp(exp);
 			}
 		}
 
