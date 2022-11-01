@@ -266,7 +266,17 @@ public class Proc : GObject
 
 		float rHp = hp / maxHp;
 		float rMp = mp / maxMp;
-		tex = Resources.Load<Texture>("hp");
+
+        //tex = Resources.Load<Texture>("exp/back");
+        //drawImage(tex, 0, 71, TOP | LEFT);
+		//
+        //tex = Resources.Load<Texture>("exp/gauge");
+        //drawImage(tex, 8, 72.5f, expPer, 1, TOP | LEFT);
+		//
+        //tex = Resources.Load<Texture>("exp/cover");
+        //drawImage(tex, 135, 72.5f, TOP | LEFT);
+		//
+        tex = Resources.Load<Texture>("hp");
 		drawImage(tex, 25, 28, rHp, 1, TOP | LEFT);
 
 		tex = Resources.Load<Texture>("mp");
