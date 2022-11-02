@@ -32,6 +32,8 @@ public class Proc : GObject
 		popInfo.show(true);
 		popMiniMap.show(true);
 
+		loadInven();
+
 		// for testing
 	}
 
@@ -214,12 +216,12 @@ public class Proc : GObject
 		minMp = 0;
 
 
-		stInfo = new iStrTex(methodStInfo, 204, 70);
+		stInfo = new iStrTex(methodStInfo, 1280, 100);
 		img.add(stInfo.tex);
 		pop.add(img);
 
 		pop.style = iPopupStyle.alpha;
-		pop.openPoint = new iPoint((MainCamera.devWidth - 250) / 2, MainCamera.devHeight - 75);
+		pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
 		pop.closePoint = pop.openPoint;
 
 		popInfo = pop;
@@ -227,7 +229,7 @@ public class Proc : GObject
 	void methodStInfo(iStrTex st)
 	{
 		Texture tex = Resources.Load<Texture>("bgInfo");
-		drawImage(tex, 0, 29, TOP | LEFT);
+		drawImage(tex, (MainCamera.devWidth - 250)/ 2, 29, TOP | LEFT);
 
 		string[] strs = st.str.Split("\n");
 		int lv = int.Parse(strs[0]);
@@ -238,7 +240,7 @@ public class Proc : GObject
 
 		float expPer = 0.0f;
 		expPer = 1.0f * exp / maxExp;
-		string result = string.Format("{0:0.#0}", expPer);
+		string result = string.Format("{0:0.#0}", expPer * 100);
 		// for testing
 
 		setStringRGBA(1, 1, 1, 1);
@@ -267,31 +269,26 @@ public class Proc : GObject
 		float rHp = hp / maxHp;
 		float rMp = mp / maxMp;
 
-        //tex = Resources.Load<Texture>("exp/back");
-        //drawImage(tex, 0, 71, TOP | LEFT);
-		//
-        //tex = Resources.Load<Texture>("exp/gauge");
-        //drawImage(tex, 8, 72.5f, expPer, 1, TOP | LEFT);
-		//
-        //tex = Resources.Load<Texture>("exp/cover");
-        //drawImage(tex, 135, 72.5f, TOP | LEFT);
-		//
+		// checkList - ui 위치 조정
+        tex = Resources.Load<Texture>("exp/back");
+        drawImage(tex, 0, 70, TOP | LEFT);
+		
+        tex = Resources.Load<Texture>("exp/gauge");
+        drawImage(tex, 16, 71.5f, expPer, 1, TOP | LEFT);
+		
+        tex = Resources.Load<Texture>("exp/cover");
+        drawImage(tex, 135, 71.5f, TOP | LEFT);
+		
+
         tex = Resources.Load<Texture>("hp");
-		drawImage(tex, 25, 28, rHp, 1, TOP | LEFT);
+		drawImage(tex, (MainCamera.devWidth - 250) / 2 + 25, 28, rHp, 1, TOP | LEFT);
 
 		tex = Resources.Load<Texture>("mp");
-		drawImage(tex, 25, 43, rMp, 1, TOP | LEFT);
+		drawImage(tex, (MainCamera.devWidth - 250) / 2 + 25, 43, rMp, 1, TOP | LEFT);
 
 		tex = Resources.Load<Texture>("infoCover");
-		drawImage(tex, 0, 0, TOP | LEFT);
+		drawImage(tex, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
 
-
-		setStringRGBA(0, 0, 0, 1);
-		//drawString("Lv." + lv, 2, 2, TOP | LEFT);
-		//
-		//drawString("Hp:" + hp + "/" + maxHp, 2, 26, TOP | LEFT);
-		//
-		//drawString("Mp:" + mp + "/" + maxMp, 2, 50, TOP | LEFT);
 		setRGBA(1, 1, 1, 1);
 
 	}
@@ -618,9 +615,9 @@ public class Proc : GObject
 	}
 #endif
 
-	// item ================================
-	// 아이템을 먹었을때를 고려해야함.
-
+// item ================================
+// 아이템을 먹었을때를 고려해야함.
+#if false
 	public Item[] items = new Item[50];
 	public int itemNum = 0;
 
@@ -651,7 +648,10 @@ public class Proc : GObject
             }
         }
     }
+	// invenSys===================
+#endif
 }
+
 
 
 public class Func
