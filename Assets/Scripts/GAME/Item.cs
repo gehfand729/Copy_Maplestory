@@ -4,7 +4,7 @@ using UnityEngine;
 
 using STD;
 
-#if true
+#if false
 public class Item
 {
 	// 아이템이 가지고 있어야 하는것.
@@ -15,7 +15,7 @@ public class Item
 	public iPoint position;
 	public iRect rect;
 
-	public Item(int i, int k, )
+	public Item()
 	{
 		position = new iPoint(0,0);
 		rect = new iRect(0, 0, 10, 10);
@@ -29,12 +29,9 @@ public class Item
 	}
 }
 #else
-public class ItemInfo
+public struct ItemInfo
 {
-	string[] strItemKind = new string[]
-	{
-		"장비" , "소비", "기타"
-	};
+	string[] strItemKind;
 
 	string[] strItemName = new string[]
 	{
@@ -50,7 +47,6 @@ public class ItemInfo
 
 	int kind;
 	int index;
-	int grade;
 	int price;
 
 

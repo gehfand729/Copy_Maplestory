@@ -32,8 +32,6 @@ public class Proc : GObject
 		popInfo.show(true);
 		popMiniMap.show(true);
 
-		loadInven();
-
 		// for testing
 	}
 
@@ -46,7 +44,6 @@ public class Proc : GObject
 		drawPopUI(dt);
 		//ui.paint(dt);
 
-		drawItem(dt, f.off);
 
 		am.update(dt, f.off);
 	}
