@@ -21,12 +21,14 @@ public class Proc : GObject
 	{
 		me = this;
 		loadMonster();
+		loadItemImg();
 
 		f = new Field();
 		p = new Player();
 		//ui = new UI();
 
 		am = new AttMgt();
+		createInven();
 
 		createPopUI();
 		popInfo.show(true);
@@ -44,6 +46,7 @@ public class Proc : GObject
 		drawPopUI(dt);
 		//ui.paint(dt);
 
+		drawItem(dt, f.off);
 
 		am.update(dt, f.off);
 	}
@@ -130,6 +133,7 @@ public class Proc : GObject
 
 		pop.style = iPopupStyle.alpha;
 
+		pop.methodDrawAfter = drawPopInvenAfter;
 		popInven = pop;
 	}
 	void methodStInven(iStrTex st)
@@ -146,8 +150,18 @@ public class Proc : GObject
 		float y = float.Parse(strs[1]);
 		setRGBA(1, 1, 1, 1);
 		popInven.closePoint = new iPoint(x, y);
-
 	}
+
+	void drawPopInvenAfter(float dt, iPopup pop, iPoint zero)
+	{
+		for(int i=0; i< invenXY; i++)
+		{
+			// draw
+			if (inven[i] == null) continue;
+			drawImage(itemTexs[0], 0, 0, TOP | LEFT);
+		}
+	}
+
 	void drawPopInven(float dt)
 	{
 		stInven.setString(posInven.x + "\n" + posInven.y);
@@ -240,10 +254,7 @@ public class Proc : GObject
 		string result = string.Format("{0:0.#0}", expPer * 100);
 		// for testing
 
-		setStringRGBA(1, 1, 1, 1);
-		drawString(lv.ToString(), 0, 0, TOP | LEFT);
-		drawString(exp.ToString(), 30, 0, TOP | LEFT);
-		drawString(result, 60, 0, TOP | LEFT);
+		
 
 		//hp = p.hp;
 		if (hp < minHp)
@@ -285,6 +296,11 @@ public class Proc : GObject
 
 		tex = Resources.Load<Texture>("infoCover");
 		drawImage(tex, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
+
+		setStringRGBA(1, 1, 1, 1);
+		drawString(lv.ToString(), (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
+		drawString(exp.ToString(), (MainCamera.devWidth - 250) / 2 + 30, 0, TOP | LEFT);
+		drawString(result, (MainCamera.devWidth - 250) / 2 + 60, 0, TOP | LEFT);
 
 		setRGBA(1, 1, 1, 1);
 
@@ -612,11 +628,21 @@ public class Proc : GObject
 	}
 #endif
 
-// item ================================
-// 아이템을 먹었을때를 고려해야함.
-#if false
+	// item ================================
+
+	
+#if true
 	public Item[] items = new Item[50];
 	public int itemNum = 0;
+	Texture[] itemTexs = null;
+
+	public void loadItemImg()
+	{
+		for(int i =0; i< items.Length; i++)
+		{
+			 itemTexs[i] = Resources.Load<Texture>("itemImages/" + 1);
+		}
+	}
 
 	public void dropItem(Item i, iPoint p)
 	{
@@ -639,6 +665,21 @@ public class Proc : GObject
         {
             if (items[i] == item)
             {
+				for (int j = 0; j < inven.Length; j++)
+				{
+					if (inven[j] == item)
+					{
+						int n = inven[j].getNum();
+						n++;
+						inven[j].setNum(n);
+						break;
+					}
+					else if (inven[j] == null)
+					{
+						inven[j] = item;
+						break;
+					}
+				}
 				itemNum--;
 				items[i] = items[itemNum];
 				i--;
@@ -646,6 +687,15 @@ public class Proc : GObject
         }
     }
 	// invenSys===================
+	private int invenX, invenY;
+	private int invenXY;
+	public Item[] inven;
+	public void createInven()
+	{
+		invenX = 4; invenY = 10;
+		invenXY = invenX * invenY;
+		inven = new Item[invenXY];
+	}
 #endif
 }
 

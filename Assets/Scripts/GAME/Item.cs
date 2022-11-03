@@ -4,21 +4,33 @@ using UnityEngine;
 
 using STD;
 
-#if false
+#if true
 public class Item
 {
 	// 아이템이 가지고 있어야 하는것.
 	// 이름, 종류, 설명, 이미지, 아이템 위치, 아이템 rect, ...
 	int index;
 	int kind;
-	iImage image;
+	Texture tex;
 	public iPoint position;
 	public iRect rect;
+	int num;
+
+	public int getNum()
+	{
+		return num;
+	}
+	public void setNum(int n)
+	{
+		num = n;
+	}
 
 	public Item()
 	{
 		position = new iPoint(0,0);
 		rect = new iRect(0, 0, 10, 10);
+		tex = Resources.Load<Texture>("")
+		num = 0;
 	}
 
 	public void paint(float dt, iPoint off)
@@ -31,13 +43,6 @@ public class Item
 #else
 public struct ItemInfo
 {
-	string[] strItemKind;
-
-	string[] strItemName = new string[]
-	{
-		"파워 엘릭서", "주황버섯의 갓"
-	};
-
 	public ItemInfo(int k, int i, int p)
     {
 		kind = k;
@@ -48,7 +53,5 @@ public struct ItemInfo
 	int kind;
 	int index;
 	int price;
-
-
 }
 #endif
