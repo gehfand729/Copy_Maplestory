@@ -21,7 +21,6 @@ public class Proc : GObject
 	{
 		me = this;
 		loadMonster();
-		loadItemImg();
 
 		f = new Field();
 		p = new Player();
@@ -154,11 +153,18 @@ public class Proc : GObject
 
 	void drawPopInvenAfter(float dt, iPopup pop, iPoint zero)
 	{
-		for(int i=0; i< invenXY; i++)
+		iPoint off = zero + new iPoint(14, 36);
+		setRGBA(1, 1, 1, 1);
+
+		for (int i=0; i< invenXY; i++)
 		{
 			// draw
 			if (inven[i] == null) continue;
-			drawImage(itemTexs[0], 0, 0, TOP | LEFT);
+			setRGBA(1, 1, 1, 1);
+			drawImage(inven[i].getTex(), off.x + (12 + 30) * (i % 4), off.y + 20 + (12 + 30) * (i / 4), TOP | LEFT);
+			setStringRGBA(0, 0, 0, 1);
+			setStringSize(20);
+			drawString(invenNum[i].ToString(), off.x + 30 + (12 + 30) * (i % 4), off.y + 20 + 30 + (12 + 30) * (i / 4), TOP | LEFT);
 		}
 	}
 
@@ -167,6 +173,7 @@ public class Proc : GObject
 		stInven.setString(posInven.x + "\n" + posInven.y);
 		popInven.paint(dt);
 	}
+
 	bool dragInven = false;
 	iPoint mouseInven = new iPoint();
 	void mousePopInven(iKeystate stat, iPoint point)
@@ -352,6 +359,7 @@ public class Proc : GObject
         imgMiniMap[0] = img;
 		pop.add(img);
 
+		pop.methodDrawAfter = drawPopMiniMapAfter;
 		popMiniMap = pop;
 	}
 	void methodStMiniMap(iStrTex st)
@@ -397,6 +405,13 @@ public class Proc : GObject
 		setStringSize(20);
 		drawString(worldName, 1, 1, TOP | LEFT);
 		drawString(mapName, 1, 24, TOP | LEFT);
+	}
+
+	void drawPopMiniMapAfter(float dt, iPopup pop, iPoint zero)
+	{
+		setRGBA(1, 1, 0, 1);
+		pPos = p.position * miniRatio;
+		fillRect(zero.x + pPos.x + 5, zero.y + pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
 	}
 
 	bool dragMiniMap = false;
@@ -448,10 +463,9 @@ public class Proc : GObject
 		stMiniMap.setString(worldName + "\n" + mapName + "\n" + posMiniMap.x + "\n" + posMiniMap.y);
 
 		popMiniMap.paint(dt);
-		setRGBA(1, 1, 0, 1);
-		pPos = p.position * miniRatio;
-		fillRect(pPos.x + 5, pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
+		
 	}
+
 	// popSetting ====================================================
 	iPopup popSetting;
 	iStrTex stSetting;
@@ -634,15 +648,6 @@ public class Proc : GObject
 #if true
 	public Item[] items = new Item[50];
 	public int itemNum = 0;
-	Texture[] itemTexs = null;
-
-	public void loadItemImg()
-	{
-		for(int i =0; i< items.Length; i++)
-		{
-			 itemTexs[i] = Resources.Load<Texture>("itemImages/" + 1);
-		}
-	}
 
 	public void dropItem(Item i, iPoint p)
 	{
@@ -667,16 +672,15 @@ public class Proc : GObject
             {
 				for (int j = 0; j < inven.Length; j++)
 				{
-					if (inven[j] == item)
-					{
-						int n = inven[j].getNum();
-						n++;
-						inven[j].setNum(n);
-						break;
-					}
-					else if (inven[j] == null)
+					if (inven[j] == null)
 					{
 						inven[j] = item;
+						invenNum[j]++;
+						break;
+					}
+					else if (inven[j].getIndex() == item.getIndex())
+					{
+						invenNum[j]++;
 						break;
 					}
 				}
@@ -690,11 +694,13 @@ public class Proc : GObject
 	private int invenX, invenY;
 	private int invenXY;
 	public Item[] inven;
+	int[] invenNum;
 	public void createInven()
 	{
 		invenX = 4; invenY = 10;
 		invenXY = invenX * invenY;
 		inven = new Item[invenXY];
+		invenNum = new int[invenXY];
 	}
 #endif
 }
@@ -794,6 +800,13 @@ public class Field
 			Color.clear, Color.red, Color.blue, Color.gray, Color.yellow,Color.clear, Color.green,
         };
     }
+
+	public void reset(int stage)
+	{
+		// 캐릭터 위치 초기화, 맵 정보 초기화
+		// 페이드 인 아웃
+
+	}
 
     public void paint(float dt)
     {

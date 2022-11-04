@@ -112,6 +112,7 @@ namespace STD
 			{
 				if (state == iPopupState.open)
 				{
+#if false
 					aniDt += dt;
 					if (aniDt >= _aniDt)
 					{
@@ -121,13 +122,20 @@ namespace STD
 							methodOpen(this);
 					}
 					alpha = aniDt / _aniDt;
+#else
+					state = iPopupState.proc;
+					if (methodOpen != null)
+						methodOpen(this);
+					alpha = 1.0f;
+#endif
 				}
 				else if (state == iPopupState.proc)
 				{
-					alpha = 1f;
+					alpha = 1.0f;
 				}
 				else if (state == iPopupState.close)
 				{
+#if false
 					aniDt += dt;
 					if (aniDt >= _aniDt)
 					{
@@ -141,6 +149,15 @@ namespace STD
 					}
 
 					alpha = 1f - aniDt / _aniDt;// alpha 1 -> 0
+#else
+					bShow = false;
+					if (methodClose != null)
+					{
+						methodClose(this);
+						return;
+					}
+					alpha = 1.0f;
+#endif
 				}
 				position = closePoint;
 			}

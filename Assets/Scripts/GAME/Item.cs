@@ -14,28 +14,25 @@ public class Item
 	Texture tex;
 	public iPoint position;
 	public iRect rect;
-	int num;
 
-	public int getNum()
-	{
-		return num;
-	}
-	public void setNum(int n)
-	{
-		num = n;
-	}
+	public Texture getTex() { return tex; }
+	public void setTex(Texture t) { tex = t; }
 
-	public Item()
+	public int getIndex() { return index; }
+
+	public Item(int i)
 	{
+		index = i;
 		position = new iPoint(0,0);
 		rect = new iRect(0, 0, 10, 10);
-		tex = Resources.Load<Texture>("")
-		num = 0;
 	}
 
 	public void paint(float dt, iPoint off)
 	{
+		rect.size = new iSize(tex.width, tex.height);
 		iPoint p = position + rect.origin + off;
+		//iGUI.instance.setRGBA(1, 1, 1, 1);
+		//iGUI.instance.drawImage(tex, p.x, p.y, iGUI.TOP | iGUI.LEFT);
 		iGUI.instance.setRGBA(1, 0, 0, 1);
 		iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
 	}
