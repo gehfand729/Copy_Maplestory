@@ -69,38 +69,6 @@ public class Player : FObject
 		else
 			cbAnim(p);
 	}
-#if false
-    void methodStCreateImg(iStrTex st)
-    {
-        string[] str = st.str.Split("\n");
-        int be = int.Parse(str[0]);
-        int frame = int.Parse(str[1]);
-        //iImage imgs;
-        if(be == 0)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWait");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        else if( be == 1)
-        {
-            Sprite[] sprite = Resources.LoadAll<Sprite>("heroWalk0");
-            Texture tex = Func.textureFromSprite(sprite[frame]);
-            iGUI.instance.setRGBA(1, 1, 1, 1);
-            iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
-        }
-        else if (be == 3)
-        {
-            iGUI.instance.setRGBA(0, 0, 1, 1);
-            iGUI.instance.fillRect(0, 0, 50, 50);
-        }
-
-        iGUI.instance.setStringSize(25);
-        iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-    }
-#else
 	void methodStCreateImage(iStrTex st)
 	{
 		string[] s = st.str.Split("\n");
@@ -140,7 +108,6 @@ public class Player : FObject
 		iGUI.instance.setRGBA(1, 1, 1, 1);
 	}
 	//else if (be == 4)// att2
-#endif
 
 	bool down;
 	int lv;

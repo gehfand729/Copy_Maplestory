@@ -12,16 +12,33 @@ using STD;
 
 public class Portal
 {
-	iPoint pos;
-	iRect rect;
+#if false
 	int index;
-	
-	public Portal(int i, iPoint p)
+
+	public Portal(int i)
 	{
 		index = i;
-
-		pos = p;
-		rect = new iRect();
+		iImage img;
+		img = new iImage();
+		for(int j =0; j<8; j++)
+        {
+			Texture tex = Resources.Load<Texture>("Portal/" + j);
+			img.add(new iTexture(tex));
+        }
 	}
-
+#else
+	int index;
+	iPoint pos;
+	public Portal(int i, iPoint p)
+    {
+		index = i;
+		pos = p;
+    }
+	iImage img;
+	
+	public void paint(float dt, iPoint off)
+    {
+		iPoint p = pos + off;
+    }
+#endif
 }

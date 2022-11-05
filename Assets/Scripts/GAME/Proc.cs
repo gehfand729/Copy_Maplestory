@@ -12,6 +12,7 @@ public class Proc : GObject
 	public Field f;
 	public Player p;
 	//public UI ui;
+	public Portal pt;
 
 	public int countLoad = 0;
 
@@ -24,6 +25,7 @@ public class Proc : GObject
 
 		f = new Field();
 		p = new Player();
+		pt = new Portal(1, new iPoint(700,800));
 		//ui = new UI();
 
 		am = new AttMgt();
@@ -804,6 +806,9 @@ public class Field
 	public void reset(int stage)
 	{
 		// 캐릭터 위치 초기화, 맵 정보 초기화
+		Proc.me.p.position = new iPoint();
+		//Proc.me.f.tiles
+
 		// 페이드 인 아웃
 
 	}
