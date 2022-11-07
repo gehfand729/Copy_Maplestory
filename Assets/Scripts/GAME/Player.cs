@@ -199,7 +199,13 @@ public class Player : FObject
 				v.x = +1;
 			}
 			if (CheckKey(key, iKeyboard.Up))
-				;
+            {
+				Portal p = checkPortalCollision(rect);
+				if(p != null)
+                {
+					Proc.me.f.reset(p.Index);
+                }
+			}
 			else if (CheckKey(key, iKeyboard.Down))
 			{
 				if (!jumping)
@@ -283,7 +289,24 @@ public class Player : FObject
 		return null;
 	}
 
-    public Item checkItemCollision(iRect rt)
+	public Portal checkPortalCollision(iRect rt)
+	{
+		iRect src = rt;
+		src.origin += position;
+
+		iRect dst;
+		Portal pt = Proc.me.pt;
+		dst = pt.Rect;
+		dst.origin += pt.Pos;
+
+		if (dst.containRect(src))
+		{
+			return pt;
+		}
+		return null;
+	}
+
+	public Item checkItemCollision(iRect rt)
     {
         iRect src = rt;
         src.origin += position;

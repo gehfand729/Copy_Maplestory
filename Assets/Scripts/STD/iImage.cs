@@ -59,6 +59,7 @@ namespace STD
 			img.tex = tex;
 			img.position = position;
 
+			img.leftRight = leftRight;
 			img.animation = animation;
 			img.repeatIdx = repeatIdx;
 			img.repeatNum = repeatNum;

@@ -25,7 +25,7 @@ public class Proc : GObject
 
 		f = new Field();
 		p = new Player();
-		pt = new Portal(1, new iPoint(700,800));
+		pt = new Portal(1, new iPoint(4 * f.tileW, 10 * f.tileH));
 		//ui = new UI();
 
 		am = new AttMgt();
@@ -45,6 +45,7 @@ public class Proc : GObject
 		p.paint(dt, f.off);
 		drawMonster(dt, f.off);
 		drawPopUI(dt);
+		pt.paint(dt, f.off);
 		//ui.paint(dt);
 
 		drawItem(dt, f.off);
@@ -355,7 +356,7 @@ public class Proc : GObject
 		miniMapW = f.tileX * miniTileW;
 		miniMapH = f.tileY * miniTileH;
 
-		stMiniMap = new iStrTex(methodStMiniMap, miniMapW + 10, miniMapH + 60);
+		stMiniMap = new iStrTex(methodStMiniMap, miniMapW + 18, miniMapH + 60);
 
 		img.add(stMiniMap.tex);
         imgMiniMap[0] = img;
@@ -366,6 +367,7 @@ public class Proc : GObject
 	}
 	void methodStMiniMap(iStrTex st)
 	{
+#if true
 		Texture tex = Resources.Load<Texture>("miniMap");
 		drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
 
@@ -407,6 +409,43 @@ public class Proc : GObject
 		setStringSize(20);
 		drawString(worldName, 1, 1, TOP | LEFT);
 		drawString(mapName, 1, 24, TOP | LEFT);
+#else
+		Texture tex = Resources.Load<Texture>("MiniMap/nw");
+		drawImage(tex, 0, 0, TOP | LEFT);
+		int tw = tex.width;
+		for (int i = tw; i< st.tex.tex.width - tw - 9; i++)
+        {
+			tex = Resources.Load<Texture>("MiniMap/n");
+			drawImage(tex, i, 0, TOP | LEFT);
+        }
+		tex = Resources.Load<Texture>("MiniMap/ne");
+		drawImage(tex, miniMapW + 9 - tex.width, 0, TOP | LEFT);
+
+
+		for (int i = 0; i < f.tileX * f.tileY; i++)
+		{
+			float x = miniTileW * (i % f.tileX);
+			float y = miniTileH * (i / f.tileX);
+			int t = f.tiles[i];
+			Color c = f.colorTile[t];
+			if (t != 0)
+			{
+				setRGBA(c.r, c.g, c.b, c.a);
+			}
+			else
+			{
+				setRGBA(1, 1, 1, 1);
+			}
+			fillRect(x + 5, y + 50, miniTileW, miniTileH);
+		}
+		setRGBA(0, 0, 0, 1);
+
+		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
+		// 주인공 삼각형
+
+		setRGBA(1, 1, 1, 1);
+
+#endif
 	}
 
 	void drawPopMiniMapAfter(float dt, iPopup pop, iPoint zero)
@@ -645,7 +684,6 @@ public class Proc : GObject
 #endif
 
 	// item ================================
-
 	
 #if true
 	public Item[] items = new Item[50];
@@ -807,7 +845,29 @@ public class Field
 	{
 		// 캐릭터 위치 초기화, 맵 정보 초기화
 		Proc.me.p.position = new iPoint();
+		off = new iPoint(0, 0);
 		//Proc.me.f.tiles
+		tiles = new int[]
+		{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		};
+		tileX = 24;
+		tileY = 13;
+		offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+		offMax = new iPoint(0, 0);
+
 
 		// 페이드 인 아웃
 

@@ -29,16 +29,50 @@ public class Portal
 #else
 	int index;
 	iPoint pos;
+	iRect rect;
+	public int Index { get { return index; } set { index = value; } }
+	public iPoint Pos { get { return pos; } set { pos = value; } }
+	public iRect Rect { get { return rect; } set { rect = value; } }
+
+	iImage img;
+
 	public Portal(int i, iPoint p)
     {
-		index = i;
 		pos = p;
+		rect = new iRect(0,0,104,142);
+
+		loadImage();
+		index = i;
     }
-	iImage img;
 	
+	void loadImage()
+    {
+		img = new iImage();
+		for(int frame = 0; frame < 8; frame++)
+        {
+			iStrTex st = new iStrTex(methodStPt, rect.size.width, rect.size.height);
+			st.setString(frame + "\n");
+			img.add(st.tex);
+        }
+		img.repeatNum = 0;
+		img._frameDt = 0.1f;
+		img.startAnimation();
+    }
+	void methodStPt(iStrTex st)
+    {
+		string[] s = st.str.Split("\n");
+		int frame = int.Parse(s[0]);
+		Texture tex;
+
+		tex = Resources.Load<Texture>("Portal/" + frame);
+		iGUI.instance.setRGBA(1, 1, 1, 1);
+		iGUI.instance.drawImage(tex, 1.0f * (rect.size.width -tex.width)/2, rect.size.height - tex.height, iGUI.TOP | iGUI.LEFT);
+    }
+
 	public void paint(float dt, iPoint off)
     {
-		iPoint p = pos + off;
+		iPoint p = pos +  off;
+		img.paint(dt, p);
     }
 #endif
 }
