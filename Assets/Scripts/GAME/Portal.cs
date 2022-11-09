@@ -72,6 +72,7 @@ public class Portal
 	public void paint(float dt, iPoint off)
     {
 		iPoint p = pos +  off;
+		iGUI.instance.setRGBA(1, 1, 1, 1);
 		img.paint(dt, p);
     }
 #endif

@@ -92,7 +92,7 @@ public class Monster : FObject
 				imgCurr.startAnimation(cbAnim, this);
 				// 수정사항. (드랍되는 아이템이 매번 다르기에 이렇게 하면 안됨.)
 				Item i = new Item(1);
-				i.setTex(Resources.Load<Texture>("ItemImages/test"));
+				i.setTex(Resources.Load<Texture>("Items/mushroomHead"));
 				Proc.me.dropItem(i, new iPoint(position.x + rect.size.width/2,
 					position.y + rect.size.height - i.rect.size.height));
 

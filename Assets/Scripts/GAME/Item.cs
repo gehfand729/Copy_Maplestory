@@ -33,8 +33,8 @@ public class Item
 		iPoint p = position + rect.origin + off;
 		//iGUI.instance.setRGBA(1, 1, 1, 1);
 		//iGUI.instance.drawImage(tex, p.x, p.y, iGUI.TOP | iGUI.LEFT);
-		iGUI.instance.setRGBA(1, 0, 0, 1);
-		iGUI.instance.fillRect(p.x, p.y, rect.size.width, rect.size.height);
+		iGUI.instance.setRGBA(1, 1, 1, 1);
+		iGUI.instance.drawImage(tex, p.x + rect.size.width / 2, p.y , iGUI.TOP|iGUI.LEFT);
 	}
 }
 #else

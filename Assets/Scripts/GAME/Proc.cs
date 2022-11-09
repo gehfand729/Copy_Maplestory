@@ -367,7 +367,7 @@ public class Proc : GObject
 	}
 	void methodStMiniMap(iStrTex st)
 	{
-#if true
+#if false
 		Texture tex = Resources.Load<Texture>("miniMap");
 		drawImage(tex, 0, 0, 1.2f, 1.2f, TOP | LEFT, 2, 0, REVERSE_NONE);
 
@@ -378,68 +378,15 @@ public class Proc : GObject
 		float posY = float.Parse(str[3]);
 
 		popMiniMap.closePoint = new iPoint(posX, posY);
-
-		for (int i = 0; i < f.tileX * f.tileY; i++)
-		{
-			float x = miniTileW * (i % f.tileX);
-			float y = miniTileH * (i / f.tileX);
-			int t = f.tiles[i];
-			Color c = f.colorTile[t];
-			if (t != 0)
-			{
-				setRGBA(c.r, c.g, c.b, c.a);
-			}
-			else
-			{
-				setRGBA(0, 0, 0, 1);
-			}
-			fillRect(x + 5, y + 50, miniTileW, miniTileH);
-		}
-		setRGBA(0, 0, 0, 1);
-
-		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
-		// 주인공 삼각형
-
-		setRGBA(1, 1, 1, 1);
-
-		drawRect(5, 50, miniMapW + 2, miniMapH + 2);
-		setRGBA(1, 1, 1, 1);
-
-		setStringRGBA(0, 0, 0, 1);
-		setStringSize(20);
-		drawString(worldName, 1, 1, TOP | LEFT);
-		drawString(mapName, 1, 24, TOP | LEFT);
 #else
-		Texture tex = Resources.Load<Texture>("MiniMap/nw");
-		drawImage(tex, 0, 0, TOP | LEFT);
-		int tw = tex.width;
-		for (int i = tw; i< st.tex.tex.width - tw - 9; i++)
-        {
-			tex = Resources.Load<Texture>("MiniMap/n");
-			drawImage(tex, i, 0, TOP | LEFT);
-        }
-		tex = Resources.Load<Texture>("MiniMap/ne");
-		drawImage(tex, miniMapW + 9 - tex.width, 0, TOP | LEFT);
+		
+		string[] str = st.str.Split("\n");
+		string worldName = str[0];
+		string mapName = str[1];
+		float posX = float.Parse(str[2]);
+		float posY = float.Parse(str[3]);
 
-
-		for (int i = 0; i < f.tileX * f.tileY; i++)
-		{
-			float x = miniTileW * (i % f.tileX);
-			float y = miniTileH * (i / f.tileX);
-			int t = f.tiles[i];
-			Color c = f.colorTile[t];
-			if (t != 0)
-			{
-				setRGBA(c.r, c.g, c.b, c.a);
-			}
-			else
-			{
-				setRGBA(1, 1, 1, 1);
-			}
-			fillRect(x + 5, y + 50, miniTileW, miniTileH);
-		}
-		setRGBA(0, 0, 0, 1);
-
+		popMiniMap.closePoint = new iPoint(posX, posY);
 		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
 		// 주인공 삼각형
 
@@ -450,6 +397,49 @@ public class Proc : GObject
 
 	void drawPopMiniMapAfter(float dt, iPopup pop, iPoint zero)
 	{
+		miniTileW = f.tileW * miniRatio;
+		miniTileH = f.tileH * miniRatio;
+
+		miniMapW = f.tileX * miniTileW;
+		miniMapH = f.tileY * miniTileH;
+
+		Texture tex = Resources.Load<Texture>("MiniMap/nw");
+		drawImage(tex, zero.x + 0, zero.y + 0, TOP | LEFT);
+		int tw = tex.width;
+		for (int i = tw; i < miniMapW + 9 - tw; i++)
+		{
+			tex = Resources.Load<Texture>("MiniMap/n");
+			drawImage(tex, zero.x + i, zero.y + 0, TOP | LEFT);
+		}
+		tex = Resources.Load<Texture>("MiniMap/ne");
+		drawImage(tex, zero.x + miniMapW + 9 - tex.width, zero.y + 0, TOP | LEFT);
+
+		for (int i = 0; i < f.tileX * f.tileY; i++)
+		{
+			float x = miniTileW * (i % f.tileX);
+			float y = miniTileH * (i / f.tileX);
+			int t = f.tiles[i];
+			Color c = f.colorTile[t];
+			if (t != 0)
+			{
+				setRGBA(c.r, c.g, c.b, c.a);
+			}
+			else
+			{
+				setRGBA(0, 0, 0, 0);
+			}
+			fillRect(zero.x + x + 9,  zero.y + y + 58, miniTileW, miniTileH);
+		}
+
+		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
+		// 주인공 삼각형
+
+		setRGBA(1, 1, 1, 1);
+
+		setStringRGBA(0, 0, 0, 1);
+		setStringSize(20);
+		drawString(worldName, zero.x + 1, zero.y + 1, TOP | LEFT);
+		drawString(mapName, zero.x + 1, zero.y + 24, TOP | LEFT);
 		setRGBA(1, 1, 0, 1);
 		pPos = p.position * miniRatio;
 		fillRect(zero.x + pPos.x + 5, zero.y + pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
