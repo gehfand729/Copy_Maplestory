@@ -7,11 +7,20 @@ using STD;
 #if true
 public class Item
 {
+	enum Behave
+    {
+		fall = 0,
+		land,
+		pickedUp,
+
+		max
+    }
 	// 아이템이 가지고 있어야 하는것.
 	// 이름, 종류, 설명, 이미지, 아이템 위치, 아이템 rect, ...
 	int index;
 	int kind;
 	Texture tex;
+	Behave be;
 	public iPoint position;
 	public iRect rect;
 
@@ -25,16 +34,57 @@ public class Item
 		index = i;
 		position = new iPoint(0,0);
 		rect = new iRect(0, 0, 10, 10);
+		be = Behave.fall;
+		loadImage();
+	}
+
+	iImage[] imgs;
+	iImage imgCurr;
+	iStrTex st;
+
+	void loadImage()
+	{
+		int i, j = (int)Behave.max;
+		imgs = new iImage[j];
+		for (i = 0; i < j; i++)
+		{
+			iImage img = new iImage();
+			st = new iStrTex(methodStCreateImage, 35, 35);
+			st.setString((i / 2) + "\n");
+			img.add(st.tex);
+			imgs[i] = img;
+		}
+	}
+
+	void methodStCreateImage(iStrTex st)
+	{
+		string[] s = st.str.Split("\n");
+		int be = int.Parse(s[0]);
+		//float dt = float.Parse(s[1]);
+		if (be == 0)// fall
+		{
+			iGUI.instance.setWhite();
+			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+		}
+		else if (be == 1) // land
+		{
+			iGUI.instance.setWhite();
+			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+		}
+		else if(be ==2) // pickedUp
+        {
+			iGUI.instance.setWhite();
+			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
+		}
+
 	}
 
 	public void paint(float dt, iPoint off)
 	{
 		rect.size = new iSize(tex.width, tex.height);
 		iPoint p = position + rect.origin + off;
-		//iGUI.instance.setRGBA(1, 1, 1, 1);
-		//iGUI.instance.drawImage(tex, p.x, p.y, iGUI.TOP | iGUI.LEFT);
-		iGUI.instance.setRGBA(1, 1, 1, 1);
-		iGUI.instance.drawImage(tex, p.x + rect.size.width / 2, p.y , iGUI.TOP|iGUI.LEFT);
+		imgCurr = imgs[(int)be];
+		imgCurr.paint(dt, p);
 	}
 }
 #else

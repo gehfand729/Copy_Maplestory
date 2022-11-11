@@ -81,10 +81,13 @@ public class Player : FObject
 			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
 			iGUI.instance.setRGBA(1, 0, 0, 1);
 			iGUI.instance.fillRect(5, 20, 10, 10);
-
+			
 			iGUI.instance.setStringRGBA(0, 0, 0, 1);
 		}
-		//else if(be==1)
+		//else if (be == 1)
+        //{
+		//
+        //}
 		else if (be == 2)// att0
 		{
 			iGUI.instance.setRGBA(0, 1, 1, 1);
@@ -102,6 +105,13 @@ public class Player : FObject
 
 			iGUI.instance.setStringRGBA(1, 0, 0, 1);
 		}
+		else if (be == 6)//die
+        {
+			Texture tex = Resources.Load<Texture>("Character/DeadBody");
+			iGUI.instance.setWhite();
+			iGUI.instance.drawImage(tex, rect.size.width / 2, 0, iGUI.TOP | iGUI.LEFT);
+
+        }
 
 		iGUI.instance.setStringSize(25);
 		iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
@@ -147,6 +157,7 @@ public class Player : FObject
 
 	float t = 0;
 	float cInterval = 2;
+	int front;
 
 	public override void paint(float dt, iPoint off)
 	{
@@ -156,10 +167,7 @@ public class Player : FObject
 		calExp();
 
 		if (v.x != 0)
-		{
-			be = (Behave)((int)be / 2 * 2) + (v.x > 0 ? 1 : 0);
-			imgCurr = imgs[(int)be];
-		}
+			front = v.x > 0 ? 1 : 0;
 		
 		Monster m = checkCollision(rect);
 		t += dt;
@@ -168,10 +176,20 @@ public class Player : FObject
 			if (t > cInterval)
 			{
 				if (hp > 0)
+				{
 					hp -= m.ap;
+
+				}
 				t = 0;
+
 			}
 		}
+		if(hp < 1)
+        {
+			be = Behave.dieLeft;
+        }
+		be = (Behave)((int)be / 2 * 2) + front;
+		imgCurr = imgs[(int)be];
 	}
 
 	private bool CheckKey(int key, iKeyboard ik)
@@ -187,7 +205,11 @@ public class Player : FObject
 
 	public void keyboard(iKeystate stat, int key)
 	{
-		//v = new iPoint(0, 0);
+		if ((int)be / 2 == 6)
+        {
+			v = new iPoint(0, 0);
+			return;
+        }
 		if (stat == iKeystate.Moved)
 		{
 			if (CheckKey(key, iKeyboard.Left))
@@ -233,9 +255,7 @@ public class Player : FObject
 				rect.origin.y = preY;
 				rect.size.height = preHeight;
 			}
-			v.x = 0;
-			v.y = 0;
-
+			v = new iPoint(0, 0);
 		}
 
 		if (stat == iKeystate.Began)

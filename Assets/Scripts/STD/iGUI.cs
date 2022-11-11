@@ -139,7 +139,10 @@ namespace STD
 				GUI.EndClip();
 		}
 #endif
-
+		public void setWhite()
+        {
+			color = Color.white;
+        }
 		public void setRGBA(float r, float g, float b, float a)
 		{
 			color.r = r;

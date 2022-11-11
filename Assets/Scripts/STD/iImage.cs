@@ -12,6 +12,7 @@ namespace STD
 
 		public iTexture tex;
 		public iPoint position;
+		public iPoint posDrawCenter;
 
 		public bool animation;
 		public int repeatIdx, repeatNum; // 0 : loop, 1 ~ : count
@@ -49,6 +50,32 @@ namespace STD
 			methodAnimation = null;
 			obj = null;
 		}
+		public iImage(iPoint p)
+        {
+			listTex = new List<iTexture>();
+
+			//tex;
+			position = new iPoint(0, 0);
+			posDrawCenter = p;
+
+			animation = false;
+			repeatIdx = 0;
+			repeatNum = 0;
+			frame = 0;
+			_frameDt = 1f;// 1 / 60
+			frameDt = 0.0f;
+			scale = 1.0f;
+
+			select = false;
+			_selectDt = 0.2f;
+			selectDt = 0.0f;
+			selectScale = -0.2f;
+
+			leftRight = false;
+
+			methodAnimation = null;
+			obj = null;
+		}
 
 		public iImage clone()
 		{
@@ -58,6 +85,7 @@ namespace STD
 
 			img.tex = tex;
 			img.position = position;
+			img.posDrawCenter = posDrawCenter;
 
 			img.leftRight = leftRight;
 			img.animation = animation;
@@ -84,7 +112,7 @@ namespace STD
 
 		public void paint(float dt)
 		{
-			paint(dt, new iPoint(0, 0));
+			paint(dt, new iPoint(0, 0) + new iPoint());
 		}
 		public void paint(float dt, iPoint off)
 		{
