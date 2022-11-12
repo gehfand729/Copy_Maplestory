@@ -10,6 +10,7 @@ public class Intro : GObject
     public override void load()
     {
         createPopGs();
+        createPopInfo();
         popGs.show(true);
     }
     public override void draw(float dt)
@@ -111,16 +112,17 @@ public class Intro : GObject
     {
         iPopup pop = new iPopup();
         
-        imgGsBtn = new iImage[2];
         
         iImage img = new iImage();
 
         string[] strGsBtn = new string[]
         {
-            "GameStart", "Info"
+            "GameStart", "About the Game", "Info"
         };
+        int btnLength = strGsBtn.Length;
+        imgGsBtn = new iImage[btnLength];
         iStrTex stPop = new iStrTex();
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < btnLength; i++)
         {
             img = new iImage();
             stPop = new iStrTex(methodPopGs, 300, 100);
@@ -155,6 +157,42 @@ public class Intro : GObject
         drawString(st.str, st.wid / 2, st.hei / 2, VCENTER | HCENTER);
     }
 #endif
+    // PopInfo ========================================================
+    // 들어갈 정보(인적사항, 가능한 기술, 경력, 깃허브(QR))
+    iPopup popInfo = null;
+    iImage[] imgInfo;
+
+    private void createPopInfo()
+    {
+        iPopup pop = new iPopup();
+        iImage img = new iImage();
+
+        imgInfo = new iImage[1];
+
+        iStrTex st = new iStrTex(methodPopInfo, 800, 500);
+        st.setString("0");
+        img.add(st.tex);
+        pop.add(img);
+
+        pop.style = iPopupStyle.alpha;
+        pop.openPoint = new iPoint((MainCamera.devWidth -st.wid) /2, (MainCamera.devHeight - st.hei) / 2);
+        pop.closePoint = pop.openPoint;
+
+
+        popInfo = pop;
+
+    }
+
+    private void methodPopInfo(iStrTex st)
+    {
+        setWhite();
+        fillRect(0, 0, st.wid, st.hei);
+
+        setStringSize(25);
+        setStringRGBA(0, 0, 0, 1);
+        drawString("이름 : 이승찬", 10, 10);
+
+    }
     private void mousePopBtn(iKeystate stat, iPoint point)
     {
         iPopup pop = popGs;
@@ -192,14 +230,18 @@ public class Intro : GObject
                 i = pop.selected;
                 if (i == -1) break;
                 imgBtn[i].select = false;
-                if(i == 0)
+                if (i == 0)
                     Main.me.reset("Proc");
+                else if (i == 1)
+                    popInfo.show(true);
                 break;
         }
     }
-    
+
+
     private void drawPop(float dt)
     {
         popGs.paint(dt);
+        popInfo.paint(dt);
     }
 }
