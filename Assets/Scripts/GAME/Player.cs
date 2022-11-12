@@ -77,7 +77,7 @@ public class Player : FObject
 
 		if (be == 0)// wait
 		{
-			iGUI.instance.setRGBA(1, 1, 1, 1);
+			iGUI.instance.setRGBAWhite();
 			iGUI.instance.fillRect(0, 0, rect.size.width, rect.size.height);
 			iGUI.instance.setRGBA(1, 0, 0, 1);
 			iGUI.instance.fillRect(5, 20, 10, 10);
@@ -108,14 +108,14 @@ public class Player : FObject
 		else if (be == 6)//die
         {
 			Texture tex = Resources.Load<Texture>("Character/DeadBody");
-			iGUI.instance.setWhite();
+			iGUI.instance.setRGBAWhite();
 			iGUI.instance.drawImage(tex, rect.size.width / 2, 0, iGUI.TOP | iGUI.LEFT);
 
         }
 
 		iGUI.instance.setStringSize(25);
 		iGUI.instance.drawString("" + (1 + frame), 25, 25, iGUI.VCENTER | iGUI.HCENTER);
-		iGUI.instance.setRGBA(1, 1, 1, 1);
+		iGUI.instance.setRGBAWhite();
 	}
 	//else if (be == 4)// att2
 

@@ -63,17 +63,17 @@ public class Item
 		//float dt = float.Parse(s[1]);
 		if (be == 0)// fall
 		{
-			iGUI.instance.setWhite();
+			iGUI.instance.setRGBAWhite();
 			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
 		}
 		else if (be == 1) // land
 		{
-			iGUI.instance.setWhite();
+			iGUI.instance.setRGBAWhite();
 			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
 		}
 		else if(be ==2) // pickedUp
         {
-			iGUI.instance.setWhite();
+			iGUI.instance.setRGBAWhite();
 			iGUI.instance.drawImage(tex, 0, 0, iGUI.TOP | iGUI.LEFT);
 		}
 

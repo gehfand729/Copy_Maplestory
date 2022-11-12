@@ -31,17 +31,17 @@ public class Portal
 	iPoint pos;
 	iRect rect;
 	public int Index { get { return index; } set { index = value; } }
-	public iPoint Pos { get { return pos; } set { pos = value; } }
+	public iPoint Pos { get { return pos; } set { pos = value - new iPoint(0, rect.size.height); } }
 	public iRect Rect { get { return rect; } set { rect = value; } }
 
 	iImage img;
 
 	public Portal(int i, iPoint p)
     {
-		pos = p;
-		rect = new iRect(0,0,104,142);
-
+		rect = new iRect(0,0, 50, 50);
+		pos = new iPoint(p.x, p.y - rect.size.height);
 		loadImage();
+
 		index = i;
     }
 	
@@ -50,7 +50,7 @@ public class Portal
 		img = new iImage();
 		for(int frame = 0; frame < 8; frame++)
         {
-			iStrTex st = new iStrTex(methodStPt, rect.size.width, rect.size.height);
+			iStrTex st = new iStrTex(methodStPt, 104, 142);
 			st.setString(frame + "\n");
 			img.add(st.tex);
         }
@@ -65,14 +65,15 @@ public class Portal
 		Texture tex;
 
 		tex = Resources.Load<Texture>("Portal/" + frame);
-		iGUI.instance.setRGBA(1, 1, 1, 1);
-		iGUI.instance.drawImage(tex, 1.0f * (rect.size.width -tex.width)/2, rect.size.height - tex.height, iGUI.TOP | iGUI.LEFT);
+		iGUI.instance.setRGBAWhite();
+		iGUI.instance.drawImage(tex, st.wid * 0.5f, st.hei + 5, iGUI.BOTTOM | iGUI.HCENTER);
     }
 
 	public void paint(float dt, iPoint off)
     {
-		iPoint p = pos +  off;
-		iGUI.instance.setRGBA(1, 1, 1, 1);
+		iPoint p = pos + off + new iPoint(	rect.origin.x + (rect.size.width - img.listTex[0].tex.width) * 0.5f,
+											rect.origin.y + rect.size.height - img.listTex[0].tex.height);
+		iGUI.instance.setRGBAWhite();
 		img.paint(dt, p);
     }
 #endif

@@ -89,7 +89,7 @@ public class GObject:iGUI
 #if true// rt : onPrev() ~ onEnd()
         GL.Clear(true, true, Color.clear);
         setProject();
-        setRGBA(1, 1, 1, 1);
+        setRGBAWhite();
         drawImage(texFbo, 0, 0, TOP | LEFT);
         degree += 360 * Time.deltaTime;
 #endif
@@ -121,7 +121,7 @@ public class GObject:iGUI
         setProject();
 
 #if true// rt : 0 ~ 2 : drawGui
-        setRGBA(1, 1, 1, 1);
+        setRGBAWhite();
         drawImage(texFbo, 0, 0, TOP | LEFT);
 #endif
     }

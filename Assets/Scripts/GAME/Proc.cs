@@ -25,7 +25,7 @@ public class Proc : GObject
 
 		f = new Field();
 		p = new Player();
-		pt = new Portal(1, new iPoint(4 * f.tileW, 17 * f.tileH));
+		pt = new Portal(1, new iPoint(4 * f.tileW, 16 * f.tileH));
 		//ui = new UI();
 
 		am = new AttMgt();
@@ -84,7 +84,7 @@ public class Proc : GObject
 			//}
 			if ((key & (int)iKeyboard.Esc) == (int)(iKeyboard.Esc))
 			{
-				addMonster(new iPoint(4 * f.tileW, 10 * f.tileH));
+				addMonster(new iPoint(4 * f.tileW, 12 * f.tileH));
 			}
 		}
 		// f
@@ -150,20 +150,20 @@ public class Proc : GObject
         string[] strs = st.str.Split("\n");
 		float x = float.Parse(strs[0]);
 		float y = float.Parse(strs[1]);
-		setRGBA(1, 1, 1, 1);
+		setRGBAWhite();
 		popInven.closePoint = new iPoint(x, y);
 	}
 
 	void drawPopInvenAfter(float dt, iPopup pop, iPoint zero)
 	{
 		iPoint off = zero + new iPoint(14, 36);
-		setWhite();
+		setRGBAWhite();
 
 		for (int i=0; i< invenXY; i++)
 		{
 			// draw
 			if (inven[i] == null) continue;
-			setRGBA(1, 1, 1, 1);
+			popInfo.show(true);
 			drawImage(inven[i].getTex(), off.x + (12 + 30) * (i % 4), off.y + 20 + (12 + 30) * (i / 4), TOP | LEFT);
 			setStringRGBA(0, 0, 0, 1);
 			setStringSize(14);
@@ -236,14 +236,17 @@ public class Proc : GObject
 		mp = maxMp = 100;
 		minMp = 0;
 
+		for(int i = 0; i < 3; i++)
+        {
+			stInfo = new iStrTex(methodStInfo, 1280, 100);
+			img.add(stInfo.tex);
+			pop.add(img);
+			pop.style = iPopupStyle.alpha;
+			pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
+			pop.closePoint = pop.openPoint;
 
-		stInfo = new iStrTex(methodStInfo, 1280, 100);
-		img.add(stInfo.tex);
-		pop.add(img);
+        }
 
-		pop.style = iPopupStyle.alpha;
-		pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
-		pop.closePoint = pop.openPoint;
 
 		popInfo = pop;
 	}
@@ -307,12 +310,14 @@ public class Proc : GObject
 		tex = Resources.Load<Texture>("infoCover");
 		drawImage(tex, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
 
+		setStringRGBA(1, 1, 0, 1);
+		drawString("Lv. " + lv, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
 		setStringRGBA(1, 1, 1, 1);
-		drawString(lv.ToString(), (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
 		drawString(exp.ToString(), (MainCamera.devWidth - 250) / 2 + 30, 0, TOP | LEFT);
+		setStringRGBA(1, 1, 1, 1);
 		drawString(result, (MainCamera.devWidth - 250) / 2 + 60, 0, TOP | LEFT);
 
-		setRGBA(1, 1, 1, 1);
+		setRGBAWhite();
 
 	}
 
@@ -391,29 +396,19 @@ public class Proc : GObject
 		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
 		// 주인공 삼각형
 
-		setRGBA(1, 1, 1, 1);
+		setRGBAWhite();
 
 #endif
 	}
 
 	void drawPopMiniMapAfter(float dt, iPopup pop, iPoint zero)
 	{
+		iPoint pos = zero;
 		miniTileW = f.tileW * miniRatio;
 		miniTileH = f.tileH * miniRatio;
 
 		miniMapW = f.tileX * miniTileW;
 		miniMapH = f.tileY * miniTileH;
-
-		Texture tex = Resources.Load<Texture>("MiniMap/nw");
-		drawImage(tex, zero.x + 0, zero.y + 0, TOP | LEFT);
-		int tw = tex.width;
-		for (int i = tw; i < miniMapW + 9 - tw; i++)
-		{
-			tex = Resources.Load<Texture>("MiniMap/n");
-			drawImage(tex, zero.x + i, zero.y + 0, TOP | LEFT);
-		}
-		tex = Resources.Load<Texture>("MiniMap/ne");
-		drawImage(tex, zero.x + miniMapW + 9 - tex.width, zero.y + 0, TOP | LEFT);
 
 		for (int i = 0; i < f.tileX * f.tileY; i++)
 		{
@@ -429,21 +424,50 @@ public class Proc : GObject
 			{
 				setRGBA(0, 0, 0, 0);
 			}
-			fillRect(zero.x + x + 9,  zero.y + y + 58, miniTileW, miniTileH);
+			fillRect(pos.x + x + 9, pos.y + y + 61, miniTileW, miniTileH);
 		}
+
+		Texture tex = Resources.Load<Texture>("MiniMap/nw");
+		setRGBAWhite();
+		drawImage(tex, pos.x + 0, pos.y + 0, TOP | LEFT);
+		int nwth = tex.height;
+		int tw = tex.width;
+		tex = Resources.Load<Texture>("MiniMap/sw");
+		int swth = tex.height;
+		drawImage(tex, pos.x + 0, pos.y + nwth + miniMapH - swth + 3, TOP | LEFT);
+		for (int j = nwth; j < nwth + miniMapH - swth + 3; j++)
+		{
+			tex = Resources.Load<Texture>("MiniMap/w");
+			drawImage(tex, pos.x + 0, pos.y + j, TOP | LEFT);
+			tex = Resources.Load<Texture>("MiniMap/e");
+			drawImage(tex, pos.x + miniMapW + 18 - tex.width, pos.y + j, TOP | LEFT);
+		}
+		for (int i = tw; i < miniMapW + 18 - tw; i++)
+		{
+			tex = Resources.Load<Texture>("MiniMap/n");
+			drawImage(tex, pos.x + i, pos.y + 0, TOP | LEFT);
+			tex = Resources.Load<Texture>("MiniMap/s");
+			drawImage(tex, pos.x + i, pos.y + 67 + miniMapH - 6, TOP | LEFT);
+		}
+		tex = Resources.Load<Texture>("MiniMap/ne");
+		drawImage(tex, pos.x + miniMapW + 18 - tex.width, pos.y + 0, TOP | LEFT);
+		tex = Resources.Load<Texture>("MiniMap/se");
+		drawImage(tex, pos.x + miniMapW + 18 - tex.width, pos.y + 67 + miniMapH - 24, TOP | LEFT);
+
+		
 
 		// 몬스터(0, 1, 2, 3, ) 별, 네모, 동그라미
 		// 주인공 삼각형
 
-		setRGBA(1, 1, 1, 1);
+		setRGBAWhite();
 
-		setStringRGBA(0, 0, 0, 1);
+		setStringRGBA(1, 1, 1, 1);
 		setStringSize(20);
-		drawString(worldName, zero.x + 1, zero.y + 1, TOP | LEFT);
-		drawString(mapName, zero.x + 1, zero.y + 24, TOP | LEFT);
+		drawString(worldName, pos.x + 64, pos.y + 5, TOP | LEFT);
+		drawString(mapName, pos.x + 64, pos.y + 27, TOP | LEFT);
 		setRGBA(1, 1, 0, 1);
 		pPos = p.position * miniRatio;
-		fillRect(zero.x + pPos.x + 5, zero.y + pPos.y + 50, 50 * miniRatio, 50 * miniRatio);
+		fillRect(pos.x + pPos.x + 9, pos.y + pPos.y + 61, 50 * miniRatio, 50 * miniRatio);
 	}
 
 	bool dragMiniMap = false;
@@ -528,7 +552,7 @@ public class Proc : GObject
 		Texture tex = Resources.Load<Texture>("SettingBg");
 		setRGBA(0, 0, 0, 1);
 		setLineWidth(4);
-		setRGBA(1, 1, 1, 1);
+		setRGBAWhite();
 		drawImage(tex, stSetting.wid / 2, stSetting.hei / 2, VCENTER | HCENTER);
 		string[] str = st.str.Split("\n");
 		string test = str[0];
@@ -614,7 +638,7 @@ public class Proc : GObject
 				img = new iImage();
 				for (int frame = 0; frame < maxFrame; frame++)
 				{
-					iStrTex animSt = new iStrTex(methodStBe, new Monster().rect.size.width, new Monster().rect.size.height);
+					iStrTex animSt = new iStrTex(methodStBe, 64, 65);
 					animSt.setString((beIndex / 2) + "\n" + frame);
 					img.add(animSt.tex);
 				}
@@ -636,6 +660,7 @@ public class Proc : GObject
 			}
 			imgsMonster[beIndex] = img;
 		}
+		
 	}
 
 	void methodStBe(iStrTex st)
@@ -644,31 +669,19 @@ public class Proc : GObject
 		int be = int.Parse(s[0]);
 		int frame = int.Parse(s[1]);
 
-		Texture tex;
+		Texture tex = null;
 		if (be == 0)
-		{
 			tex = Resources.Load<Texture>("OrangeMush/Stand/mobStand" + frame);
-			setRGBA(1, 1, 1, 1);
-			drawImage(tex, 0, new Monster().rect.size.width - tex.height, TOP | LEFT);
-		}
 		else if (be == 1)
-		{
 			tex = Resources.Load<Texture>("OrangeMush/Move/mobMove" + frame);
-			setRGBA(1, 1, 1, 1);
-			drawImage(tex, 0, new Monster().rect.size.width - tex.height, TOP | LEFT);
-		}
 		else if (be == 4)
-		{
 			tex = Resources.Load<Texture>("OrangeMush/Hit/mobHit0");
-			setRGBA(1, 1, 1, 1);
-			drawImage(tex, 0, new Monster().rect.size.width - tex.height, TOP | LEFT);
-		}
 		else if (be == 6)
-		{
 			tex = Resources.Load<Texture>("OrangeMush/Die/mobDie" + frame);
-			setRGBA(1, 1, 1, 1);
-			drawImage(tex, 0, new Monster().rect.size.width - tex.height, TOP | LEFT);
-		}
+		else
+			tex = Resources.Load<Texture>("OrangeMush/Stand/mobStand0");
+		setRGBAWhite();
+		drawImage(tex, st.wid * 0.5f, st.hei, BOTTOM | HCENTER);
 		setStringSize(25);
 		drawString("" + (1 + frame), 25, 25, VCENTER | HCENTER);
 	}
@@ -786,7 +799,8 @@ public class Field
     public Color[] colorTile;
     Texture fieldTex;
 
-    public Field()
+
+	public Field()
     {
         texBg = Resources.Load<Texture>("Background");
         ratioW = 1.0f * MainCamera.devWidth / texBg.width;
@@ -802,27 +816,27 @@ public class Field
 
         tiles = new int[]
         {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         };
-        off = new iPoint(0, 0);
+		off = new iPoint(0, 0);
         offMin = new iPoint(MainCamera.devWidth- tileW*tileX, MainCamera.devHeight-tileH*tileY);
         offMax = new iPoint(0, 0);
 
@@ -837,10 +851,11 @@ public class Field
 		// 캐릭터 위치 초기화, 맵 정보 초기화
 		Proc.me.p.position = new iPoint();
 		off = new iPoint(0, 0);
+		Proc.me.pt.Pos = new iPoint(4 * tileW, 12 * tileH);
 		//Proc.me.f.tiles
 		tiles = new int[]
 		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -866,7 +881,7 @@ public class Field
 
     public void paint(float dt)
     {
-		iGUI.instance.setRGBA(1, 1, 1, 1);
+		iGUI.instance.setRGBAWhite();
         iGUI.instance.drawImage(texBg, 0, 0, ratioW, ratioH, iGUI.TOP | iGUI.LEFT);
 
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
@@ -895,7 +910,7 @@ public class Field
             Color c = colorTile[t];
             if (t == 1)
             {
-                iGUI.instance.setRGBA(1, 1, 1, 1);
+                iGUI.instance.setRGBAWhite();
                 iGUI.instance.drawImage(fieldTex, x, y, iGUI.TOP | iGUI.LEFT);
             }
 			else if (t == 6)
@@ -909,8 +924,8 @@ public class Field
                 iGUI.instance.fillRect(x, y, tileW, tileH);
             }
         }
-        iGUI.instance.setRGBA(1, 1, 1, 1);
-    }
+        iGUI.instance.setRGBAWhite();
+	}
 }
 
 class AttInfo

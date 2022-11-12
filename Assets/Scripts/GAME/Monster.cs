@@ -11,8 +11,7 @@ public class Monster : FObject
 	MethodAI methodAI = null;
 	
 	int exp;
-	int getExp() { return exp; }
-	void setExp(int e) { exp = e; }
+	public int Exp { get { return exp; } set { exp = value; } }
 	public Monster()
 	{
 		ap = 10;

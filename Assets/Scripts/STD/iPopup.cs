@@ -355,7 +355,7 @@ namespace STD
 			//Camera.main.rect = bkR;
 			GUI.matrix = matrixBk;
 
-			iGUI.instance.setRGBA(1, 1, 1, 1);
+			iGUI.instance.setRGBAWhite();
 			//iGUI.instance.drawImage(renderTexture, position, iGUI.TOP|iGUI.LEFT);
 			iPoint p = position - move * scale;
 			//degree = 0;

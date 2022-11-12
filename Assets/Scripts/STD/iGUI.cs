@@ -139,10 +139,14 @@ namespace STD
 				GUI.EndClip();
 		}
 #endif
-		public void setWhite()
+		public void setRGBAWhite()
         {
 			color = Color.white;
         }
+		public void setBlack()
+		{
+			color = Color.black;
+		}
 		public void setRGBA(float r, float g, float b, float a)
 		{
 			color.r = r;
@@ -172,9 +176,9 @@ namespace STD
 			drawImage(texDot, cx, cy, len, lineWidth, VCENTER | HCENTER, 2, -degree, REVERSE_NONE);
 		}
 
-		public void drawRect(iRect rt)
+		public void drawRect(iPoint p, iRect rt)
         {
-			drawRect(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
+			drawRect(p.x, p.y, rt.size.width, rt.size.height);
         }
 		public void drawRect(float x, float y, float width, float height)
 		{

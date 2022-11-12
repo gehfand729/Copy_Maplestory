@@ -19,7 +19,7 @@ public class Intro : GObject
         float sW, sH;
         sW = 1.0f * MainCamera.devWidth / tex.width;
         sH = 1.0f * MainCamera.devHeight / tex.height;
-        setRGBA(1, 1, 1, 1);
+        setRGBAWhite();
         drawImage(tex, 0, 0, sW, sH, TOP | LEFT);
 
         drawPop(dt);
@@ -145,7 +145,7 @@ public class Intro : GObject
     private void methodPopGs(iStrTex st)
     {
         Texture tex = Resources.Load<Texture>("startBtn");
-        setRGBA(1, 1, 1, 1);
+        setRGBAWhite();
         drawImage(tex, 0, 0, 1.2f, 1.2f, VCENTER | HCENTER);
 
         setRGBA(0, 0, 0, 1);
@@ -173,7 +173,6 @@ public class Intro : GObject
         st.setString("0");
         img.add(st.tex);
         pop.add(img);
-
         pop.style = iPopupStyle.alpha;
         pop.openPoint = new iPoint((MainCamera.devWidth -st.wid) /2, (MainCamera.devHeight - st.hei) / 2);
         pop.closePoint = pop.openPoint;
@@ -185,12 +184,19 @@ public class Intro : GObject
 
     private void methodPopInfo(iStrTex st)
     {
-        setWhite();
+        setRGBAWhite();
         fillRect(0, 0, st.wid, st.hei);
 
         setStringSize(25);
         setStringRGBA(0, 0, 0, 1);
         drawString("이름 : 이승찬", 10, 10);
+        drawString("이메일 : gehfand729@gmail.com", 10, 40);
+
+        setRGBAWhite();
+        Texture tex = Resources.Load<Texture>("githubQR");
+        float ratio = 0.5f;
+        drawImage(tex, st.wid - tex.width * ratio - 10, 10, ratio, ratio, TOP | LEFT);
+        drawString("Github", st.wid - tex.width * ratio - 10, 10 + tex.height * ratio + 10);
 
     }
     private void mousePopBtn(iKeystate stat, iPoint point)
@@ -232,7 +238,7 @@ public class Intro : GObject
                 imgBtn[i].select = false;
                 if (i == 0)
                     Main.me.reset("Proc");
-                else if (i == 1)
+                else if (i == 2)
                     popInfo.show(true);
                 break;
         }
