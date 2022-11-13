@@ -16,11 +16,8 @@ public class Intro : GObject
     public override void draw(float dt)
     {
         Texture tex = Resources.Load<Texture>("IntroScreen");
-        float sW, sH;
-        sW = 1.0f * MainCamera.devWidth / tex.width;
-        sH = 1.0f * MainCamera.devHeight / tex.height;
         setRGBAWhite();
-        drawImage(tex, 0, 0, sW, sH, TOP | LEFT);
+        drawImage(tex, MainCamera.devWidth / 2, MainCamera.devHeight/2, VCENTER | HCENTER);
 
         drawPop(dt);
     }
@@ -153,7 +150,8 @@ public class Intro : GObject
         drawRect(0, 0, st.wid+6, st.hei+6);
 
         setStringSize(30);
-        setStringRGBA(1, 0, 0, 1);
+        setStringName("Maplestory Bold");
+        setStringRGBA(0, 0, 0, 1);
         drawString(st.str, st.wid / 2, st.hei / 2, VCENTER | HCENTER);
     }
 #endif
@@ -187,10 +185,11 @@ public class Intro : GObject
         setRGBAWhite();
         fillRect(0, 0, st.wid, st.hei);
 
-        setStringSize(25);
+        setStringSize(40);
+        setStringName("Maplestory Light");
         setStringRGBA(0, 0, 0, 1);
         drawString("이름 : 이승찬", 10, 10);
-        drawString("이메일 : gehfand729@gmail.com", 10, 40);
+        drawString("이메일 : gehfand729@gmail.com", 10, 60);
 
         setRGBAWhite();
         Texture tex = Resources.Load<Texture>("githubQR");

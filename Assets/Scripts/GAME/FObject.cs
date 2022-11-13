@@ -9,21 +9,21 @@ public class FObject
 	{
 		waitLeft = 0,
 		waitRight,
-		walkLeft,
+		walkLeft,	//1
 		walkRight,
 
-		att0Left,
+		att0Left,	//2
 		att0Right,
-		att1Left,
+		att1Left,	//3
 		att1Right,
 
-		hitLeft,
+		hitLeft,	//4
 		hitRight,
 
-		jumpLeft,
+		jumpLeft,	//5
 		jumpRight,
 
-		dieLeft,
+		dieLeft,	//6
 		dieRight,
 
 		max

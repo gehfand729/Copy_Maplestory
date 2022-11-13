@@ -210,6 +210,7 @@ public class Player : FObject
 			v = new iPoint(0, 0);
 			return;
         }
+		//if((int)be /2 >1 )
 		if (stat == iKeystate.Moved)
 		{
 			if (CheckKey(key, iKeyboard.Left))

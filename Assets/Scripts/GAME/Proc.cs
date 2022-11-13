@@ -224,6 +224,8 @@ public class Proc : GObject
 	iPopup popInfo = null;
 	int lv, hp, maxHp, minHp, mp, maxMp, minMp, exp, maxExp;
 	iStrTex stInfo;
+
+#if false
 	void createPopInfo()
 	{
 		iPopup pop = new iPopup();
@@ -235,25 +237,67 @@ public class Proc : GObject
 		minHp = 0;
 		mp = maxMp = 100;
 		minMp = 0;
+		// hp, mp, exp, lv 다 분리.
+		// 위치는 이미지의 pos이용 off는 openPoint
+		// pop 위치는 그대로 이용.
+		stInfo = new iStrTex(methodStInfo, 204, 70);
+		img.add(stInfo.tex);
+		img.position = new iPoint((MainCamera.devWidth - 204) * 0.5f, 0);
+		pop.add(img);
+		
+		stInfo = new iStrTex(methodStInfo, 204, 70);
+		img.add(stInfo.tex);
+		img.position = new iPoint((MainCamera.devWidth - 204) * 0.5f, 0);
+		pop.add(img);
 
-		for(int i = 0; i < 3; i++)
-        {
-			stInfo = new iStrTex(methodStInfo, 1280, 100);
-			img.add(stInfo.tex);
-			pop.add(img);
-			pop.style = iPopupStyle.alpha;
-			pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
-			pop.closePoint = pop.openPoint;
 
-        }
+		pop.style = iPopupStyle.alpha;
+		pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
+		pop.closePoint = pop.openPoint;
 
+		popInfo = pop;
+	}
+	void methodStInfo(iStrTex st)
+	{
+	}
+	void drawPopInfoBefore(float dt, iPopup pop, iPoint zero)
+    {
+
+    }
+	void drawPopInfoAfter(float dt, iPopup pop, iPoint zero)
+	{
+
+	}
+#else
+	void createPopInfo()
+	{
+		iPopup pop = new iPopup();
+		iImage img = new iImage();
+
+		lv = 0;
+
+		maxHp = p.maxHp;
+		minHp = 0;
+		mp = maxMp = 100;
+		minMp = 0;
+		// hp, mp, exp, lv 다 분리.
+		// 위치는 이미지의 pos이용 off는 openPoint
+		// pop 위치는 그대로 이용.
+		stInfo = new iStrTex(methodStInfo, 1280, 100);
+		img.add(stInfo.tex);
+		pop.add(img);
+
+
+		pop.style = iPopupStyle.alpha;
+		pop.openPoint = new iPoint(0, MainCamera.devHeight - 80);
+		pop.closePoint = pop.openPoint;
 
 		popInfo = pop;
 	}
 	void methodStInfo(iStrTex st)
 	{
 		Texture tex = Resources.Load<Texture>("bgInfo");
-		drawImage(tex, (MainCamera.devWidth - 250)/ 2, 29, TOP | LEFT);
+		drawImage(tex, (MainCamera.devWidth - 250) / 2, 29, TOP | LEFT);
 
 		string[] strs = st.str.Split("\n");
 		int lv = int.Parse(strs[0]);
@@ -267,7 +311,7 @@ public class Proc : GObject
 		string result = string.Format("{0:0.#0}", expPer * 100);
 		// for testing
 
-		
+
 
 		//hp = p.hp;
 		if (hp < minHp)
@@ -291,17 +335,17 @@ public class Proc : GObject
 		float rMp = mp / maxMp;
 
 		// checkList - ui 위치 조정
-        tex = Resources.Load<Texture>("exp/back");
-        drawImage(tex, 0, 70, TOP | LEFT);
-		
-        tex = Resources.Load<Texture>("exp/gauge");
-        drawImage(tex, 16, 71.5f, expPer, 1, TOP | LEFT);
-		
-        tex = Resources.Load<Texture>("exp/cover");
-        drawImage(tex, 135, 71.5f, TOP | LEFT);
-		
+		tex = Resources.Load<Texture>("exp/back");
+		drawImage(tex, 0, 70, TOP | LEFT);
 
-        tex = Resources.Load<Texture>("hp");
+		tex = Resources.Load<Texture>("exp/gauge");
+		drawImage(tex, 16, 71.5f, expPer, 1, TOP | LEFT);
+
+		tex = Resources.Load<Texture>("exp/cover");
+		drawImage(tex, 135, 71.5f, TOP | LEFT);
+
+
+		tex = Resources.Load<Texture>("hp");
 		drawImage(tex, (MainCamera.devWidth - 250) / 2 + 25, 28, rHp, 1, TOP | LEFT);
 
 		tex = Resources.Load<Texture>("mp");
@@ -320,7 +364,7 @@ public class Proc : GObject
 		setRGBAWhite();
 
 	}
-
+#endif
 	void drawPopInfo(float dt)
 	{
 		hp = p.hp;
@@ -806,9 +850,7 @@ public class Field
         ratioW = 1.0f * MainCamera.devWidth / texBg.width;
         ratioH = 1.0f * MainCamera.devHeight / texBg.height;
 
-		Sprite[] spriteMap = Resources.LoadAll<Sprite>("map");
-
-		fieldTex = Func.textureFromSprite(spriteMap[0]);
+		fieldTex = Resources.Load<Texture>("Map/Tile/bsc0");
         tileX = 30;
         tileY = 19;
         tileW = fieldTex.width;

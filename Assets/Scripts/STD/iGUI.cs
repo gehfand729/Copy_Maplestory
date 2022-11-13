@@ -340,7 +340,7 @@ namespace STD
 		public iSize sizeOfString(string str)
 		{
 			GUIStyle style = new GUIStyle(GUI.skin.label);
-			style.font = Resources.Load<Font>(name);
+			style.font = Resources.Load<Font>(stringName);
 			style.fontSize = (int)stringSize;
 			style.fontStyle = FontStyle.Normal;
 			style.normal.textColor = stringColor;
@@ -351,7 +351,7 @@ namespace STD
 		public void drawString(string str, float x, float y, int anc = TOP | LEFT)
 		{
 			GUIStyle style = new GUIStyle(GUI.skin.label);
-			style.font = Resources.Load<Font>(name);
+			style.font = Resources.Load<Font>(stringName);
 			style.fontSize = (int)stringSize;
 			style.fontStyle = FontStyle.Normal;
 			style.normal.textColor = stringColor;
