@@ -73,6 +73,7 @@ public class FObject
 					int n = Proc.me.f.tiles[Proc.me.f.tileX * j + i];
 					if (n == 0) continue;
 					if (n == 2 || n == 3) continue;
+					if (n == 5 && GetType().Name == "Player") continue;
 
 					minX = Proc.me.f.tileW * (i + 1);
 					check = true;
@@ -106,7 +107,7 @@ public class FObject
 					int n = Proc.me.f.tiles[Proc.me.f.tileX * j + i];
 					if (n == 0) continue;
 					if (n == 2 || n == 4) continue;
-
+					if (n == 5 && GetType().Name == "Player") continue;
 					maxX = Proc.me.f.tileW * i - 1;
 					check = true;
 					break;
@@ -138,6 +139,7 @@ public class FObject
 				{
 					int n = Proc.me.f.tiles[Proc.me.f.tileX * j + i];
 					if (n == 0) continue;
+					if (n == 5 && GetType().Name == "Player") continue;
 					if (n == 1)
 					{
 						minY = Proc.me.f.tileH * (j + 1);
@@ -173,6 +175,7 @@ public class FObject
 					int n = Proc.me.f.tiles[Proc.me.f.tileX * j + i];
 					if (n == 0) continue;
 					if (n == 3 || n == 4) continue;
+					if (n == 5 && GetType().Name == "Player") continue;
 
 					maxY = Proc.me.f.tileH * j - 1;
 					check = true;

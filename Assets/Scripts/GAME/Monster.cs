@@ -18,7 +18,7 @@ public class Monster : FObject
 		exp = 10;
 		alive = false;
 		position = new iPoint(0, 0);
-		rect = new iRect(0, 0, 63, 60);
+		rect = new iRect(0, 0, 60, 60);
 		v = new iPoint(0, 0);
 		moveSpeed = 150;
 
@@ -52,7 +52,8 @@ public class Monster : FObject
 	{ 
 		if (methodAI != null)
 			methodAI(dt);
-		iPoint p = position + rect.origin + off;
+		iPoint p = position + rect.origin + off + new iPoint(	rect.origin.x + (rect.size.width - imgs[0].listTex[0].tex.width) * 0.5f,
+																rect.origin.y + rect.size.height - imgs[0].listTex[0].tex.height);
 		imgCurr.paint(dt,p);
 
 		move(dt);
@@ -69,7 +70,7 @@ public class Monster : FObject
 			if (t < 0)
 			{
 				a = Random.Range(0, 2);
-				t = 2;
+				t = Random.Range(0.5f, 3);
 				switch (a)
 				{
 					case 0:
@@ -130,12 +131,4 @@ public class Monster : FObject
 		}
 	}
 
-}
-
-public class MushRoom : Monster
-{
-	public void loadImage()
-	{
-
-	}
 }

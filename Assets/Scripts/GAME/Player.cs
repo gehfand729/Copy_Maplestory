@@ -210,6 +210,12 @@ public class Player : FObject
 			v = new iPoint(0, 0);
 			return;
         }
+		if ((int)be / 2 > 1 && (int)be / 2 < 4)
+        {
+			if(!jumping)
+				v.x = 0;
+			return;
+        }
 		//if((int)be /2 >1 )
 		if (stat == iKeystate.Moved)
 		{
@@ -243,7 +249,7 @@ public class Player : FObject
 				if (!jumping && !down)
 				{
 					jumping = true;
-					jumpForce = -710;
+					jumpForce = -600;
 				}
 			}
 		}
@@ -316,7 +322,7 @@ public class Player : FObject
 		src.origin += position;
 
 		iRect dst;
-		Portal pt = Proc.me.pt;
+		Portal pt = Proc.me.f.pt;
 		dst = pt.Rect;
 		dst.origin += pt.Pos;
 

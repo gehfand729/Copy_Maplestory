@@ -11,6 +11,7 @@ public class Intro : GObject
     {
         createPopGs();
         createPopInfo();
+        createPopHow();
         popGs.show(true);
     }
     public override void draw(float dt)
@@ -198,6 +199,48 @@ public class Intro : GObject
         drawString("Github", st.wid - tex.width * ratio - 10, 10 + tex.height * ratio + 10);
 
     }
+    // popHowToPlay =======
+    iPopup popHow = null;
+    iImage[] imgHow;
+
+    private void createPopHow()
+    {
+        iPopup pop = new iPopup();
+        iImage img = new iImage();
+
+        imgInfo = new iImage[1];
+
+        iStrTex st = new iStrTex(methodPopHow, 800, 500);
+        st.setString("0");
+        img.add(st.tex);
+        pop.add(img);
+        pop.style = iPopupStyle.alpha;
+        pop.openPoint = new iPoint((MainCamera.devWidth - st.wid) / 2, (MainCamera.devHeight - st.hei) / 2);
+        pop.closePoint = pop.openPoint;
+
+
+        popHow = pop;
+
+    }
+
+    private void methodPopHow(iStrTex st)
+    {
+        setRGBAWhite();
+        fillRect(0, 0, st.wid, st.hei);
+
+        setStringSize(40);
+        setStringName("Maplestory Light");
+        setStringRGBA(0, 0, 0, 1);
+        drawString("이름 : 이승찬", 10, 10);
+        drawString("이메일 : gehfand729@gmail.com", 10, 60);
+
+        setRGBAWhite();
+        Texture tex = Resources.Load<Texture>("githubQR");
+        float ratio = 0.5f;
+        drawImage(tex, st.wid - tex.width * ratio - 10, 10, ratio, ratio, TOP | LEFT);
+        drawString("Github", st.wid - tex.width * ratio - 10, 10 + tex.height * ratio + 10);
+
+    }
     private void mousePopBtn(iKeystate stat, iPoint point)
     {
         iPopup pop = popGs;
@@ -237,6 +280,8 @@ public class Intro : GObject
                 imgBtn[i].select = false;
                 if (i == 0)
                     Main.me.reset("Proc");
+                else if (i == 1)
+                    popHow.show(true);
                 else if (i == 2)
                     popInfo.show(true);
                 break;
@@ -248,5 +293,6 @@ public class Intro : GObject
     {
         popGs.paint(dt);
         popInfo.paint(dt);
+        popHow.paint(dt);
     }
 }

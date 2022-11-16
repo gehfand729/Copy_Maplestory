@@ -12,7 +12,7 @@ public class Proc : GObject
 	public Field f;
 	public Player p;
 	//public UI ui;
-	public Portal pt;
+	//public Portal pt;
 
 	public int countLoad = 0;
 
@@ -23,9 +23,9 @@ public class Proc : GObject
 		me = this;
 		loadMonster();
 
-		f = new Field();
 		p = new Player();
-		pt = new Portal(1, new iPoint(4 * f.tileW, 16 * f.tileH));
+		f = new Field();
+		//pt = new Portal(1, new iPoint(4 * f.tileW, 16 * f.tileH));
 		//ui = new UI();
 
 		am = new AttMgt();
@@ -45,7 +45,7 @@ public class Proc : GObject
 		p.paint(dt, f.off);
 		drawMonster(dt, f.off);
 		drawPopUI(dt);
-		pt.paint(dt, f.off);
+		//pt.paint(dt, f.off);
 		//ui.paint(dt);
 
 		drawItem(dt, f.off);
@@ -58,6 +58,8 @@ public class Proc : GObject
 	{
 		mousePopInven(stat, point);
 		mousePopMiniMap(stat, point);
+		if(popMenu.bShow == true)
+			mousePopMenu(stat, point);
 		// ui
 		// f
 		// p
@@ -75,17 +77,17 @@ public class Proc : GObject
 				else if (popInven.state == iPopupState.proc)
 					popInven.show(false);
 			}
-			//if ((key & (int)iKeyboard.esc) == (int)(iKeyboard.esc))
-			//{
-			//	if (popSetting.bShow == false)
-			//		popSetting.show(true);
-			//	else if (popSetting.state == iPopupState.proc)
-			//		popSetting.show(false);
-			//}
 			if ((key & (int)iKeyboard.Esc) == (int)(iKeyboard.Esc))
 			{
-				addMonster(new iPoint(4 * f.tileW, 12 * f.tileH));
+				if (popMenu.bShow == false)
+					popMenu.show(true);
+				else if (popMenu.state == iPopupState.proc)
+					popMenu.show(false);
 			}
+			//if ((key & (int)iKeyboard.Esc) == (int)(iKeyboard.Esc))
+			//{
+			//	addMonster(new iPoint(4 * f.tileW, 12 * f.tileH));
+			//}
 		}
 		// f
 		// p
@@ -98,7 +100,8 @@ public class Proc : GObject
 		createPopInfo();
 		createPopMiniMap();
 		createPopInven();
-		createPopSetting();
+		createPopMenu();
+		createPopEnd();
 	}
 
 	void drawPopUI(float dt)
@@ -107,6 +110,7 @@ public class Proc : GObject
 		drawPopMiniMap(dt);
 		drawPopInven(dt);
 		drawPopSetting(dt);
+		drawPopEnd(dt);
 	}
 
     // Inventory =====================================================================
@@ -355,11 +359,16 @@ public class Proc : GObject
 		drawImage(tex, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
 
 		setStringRGBA(1, 1, 0, 1);
-		drawString("Lv. " + lv, (MainCamera.devWidth - 250) / 2, 0, TOP | LEFT);
+		drawString("Lv. " + lv, (MainCamera.devWidth - 250) / 2 + 20, 0, TOP | LEFT);
+		setStringRGBA(0, 0, 0, 1);
+		drawString($"{hp} / {maxHp} ", (MainCamera.devWidth - 250) / 2 + 120, 23, TOP | HCENTER);
+		setStringRGBA(0, 0, 0, 1);
+		drawString($"{mp} / {maxMp} ", (MainCamera.devWidth - 250) / 2 + 120, 40, TOP | HCENTER);
+		//setStringRGBA(1, 1, 1, 1);
+		//drawString(exp.ToString(), (MainCamera.devWidth - 250) / 2 + 120, 50, TOP | LEFT);
 		setStringRGBA(1, 1, 1, 1);
-		drawString(exp.ToString(), (MainCamera.devWidth - 250) / 2 + 30, 0, TOP | LEFT);
-		setStringRGBA(1, 1, 1, 1);
-		drawString(result, (MainCamera.devWidth - 250) / 2 + 60, 0, TOP | LEFT);
+		setStringSize(10);
+		drawString($"{result}%", (MainCamera.devWidth - 250) / 2 + 120, 63, TOP | HCENTER);
 
 		setRGBAWhite();
 
@@ -396,9 +405,6 @@ public class Proc : GObject
 
 		imgMiniMap = new iImage[1];
 
-		worldName = "¸®ÇÁ·¹";
-		mapName = "¿ëÀÇ µÕÁö";
-
 		miniRatio = 0.1f;
 		miniTileW = f.tileW * miniRatio;
 		miniTileH = f.tileH * miniRatio;
@@ -431,8 +437,8 @@ public class Proc : GObject
 #else
 		
 		string[] str = st.str.Split("\n");
-		string worldName = str[0];
-		string mapName = str[1];
+		worldName = str[0];
+		mapName = str[1];
 		float posX = float.Parse(str[2]);
 		float posY = float.Parse(str[3]);
 
@@ -506,9 +512,9 @@ public class Proc : GObject
 		setRGBAWhite();
 
 		setStringRGBA(1, 1, 1, 1);
-		setStringSize(20);
-		drawString(worldName, pos.x + 64, pos.y + 5, TOP | LEFT);
-		drawString(mapName, pos.x + 64, pos.y + 27, TOP | LEFT);
+		setStringSize(15);
+		drawString(worldName,	pos.x +	48, pos.y + 15, TOP | LEFT);
+		drawString(mapName,		pos.x +	48, pos.y +	15 + 17, TOP | LEFT);
 		setRGBA(1, 1, 0, 1);
 		pPos = p.position * miniRatio;
 		fillRect(pos.x + pPos.x + 9, pos.y + pPos.y + 61, 50 * miniRatio, 50 * miniRatio);
@@ -560,51 +566,210 @@ public class Proc : GObject
 	iPoint pPos;
 	void drawPopMiniMap(float dt)
 	{
-		stMiniMap.setString(worldName + "\n" + mapName + "\n" + posMiniMap.x + "\n" + posMiniMap.y);
+		stMiniMap.setString(f.strWorld + "\n" + f.strMap + "\n" + posMiniMap.x + "\n" + posMiniMap.y);
 
 		popMiniMap.paint(dt);
 		
 	}
 
-	// popSetting ====================================================
-	iPopup popSetting;
-	iStrTex stSetting;
-	iImage imgSettingBtn;
-	void createPopSetting()
+	// popMenu ====================================================
+	public iPopup popMenu;
+	iImage[] imgMenuBtn;
+	iTexture texMenu;
+	void createPopMenu()
 	{
 		iPopup pop = new iPopup();
-		iTexture tex = new iTexture(Resources.Load<Texture>("SettingBg"));
+
+		texMenu = new iTexture(Resources.Load<Texture>("bgMenu"));
 		iImage img = new iImage();
-
-		img.add(tex);
+		img.add(texMenu);
 		pop.add(img);
 
-		string strBtn = "Ã³À½À¸·Î";
-		img = new iImage();
-		stSetting = new iStrTex(methodStSetting, 500, 300);
-		stSetting.setString(strBtn + "\n");
-		img.add(stSetting.tex);
-		pop.add(img);
-
-		pop.openPoint = new iPoint(200, 150);
+		imgMenuBtn = new iImage[2];
+		string[] strMenuBtn = new string[]
+		{
+			"Ã³À½À¸·Î", "ÀÌ¾îÇÏ±â",
+		};
+		iStrTex stPop = new iStrTex();
+		for(int i = 0; i< 2; i++)
+        {
+			img = new iImage();
+			stPop = new iStrTex(methodStMenu, 300, 100);
+			stPop.setString(strMenuBtn[i]);
+			img.position = new iPoint((texMenu.tex.width - stPop.tex.tex.width) /2 ,
+									(stPop.tex.tex.height + 20) * i + 200);
+			img.add(stPop.tex);
+			pop.add(img);
+			imgMenuBtn[i] = img;
+		}
+		pop.style = iPopupStyle.alpha;
+		pop.openPoint = new iPoint(	(MainCamera.devWidth - texMenu.tex.width) / 2,
+									(MainCamera.devHeight - texMenu.tex.height) / 2);
 		pop.closePoint = pop.openPoint;
-		popSetting = pop;
-		imgSettingBtn = img;
-	}
-	void methodStSetting(iStrTex st)
-	{
-		Texture tex = Resources.Load<Texture>("SettingBg");
-		setRGBA(0, 0, 0, 1);
-		setLineWidth(4);
-		setRGBAWhite();
-		drawImage(tex, stSetting.wid / 2, stSetting.hei / 2, VCENTER | HCENTER);
-		string[] str = st.str.Split("\n");
-		string test = str[0];
 
+		popMenu = pop;
+	}
+
+	void methodStMenu(iStrTex st)
+	{
+		setRGBA(0.5f, 0.5f, 0.5f, 1);
+		fillRect(0, 0, 500, 80);
+		setRGBA(0, 0, 0, 1);
+		setLineWidth(3);
+		drawRect(0, 0, 500, 80);
+
+		setStringSize(30);
+		setStringName("Maplestory Bold");
+		setStringRGBA(0, 0, 0, 1);
+		drawString(	st.str, st.wid/2, st.hei/2, VCENTER | HCENTER);
+	}
+
+	private void mousePopMenu(iKeystate stat, iPoint point)
+	{
+		iPopup pop = popMenu;
+		iImage[] imgBtn = imgMenuBtn;
+
+		int i, j = -1;
+
+		switch (stat)
+		{
+			case iKeystate.Began:
+				i = pop.selected;
+				if (i == -1) break;
+				imgBtn[i].select = true;
+				break;
+			case iKeystate.Moved:
+				for (i = 0; i < imgBtn.Length; i++)
+				{
+					if (imgBtn[i].touchRect(pop.closePoint, new iSize(0, 0)).containPoint(point))
+					{
+						j = i;
+						break;
+					}
+				}
+
+				if (pop.selected != j)
+				{
+					pop.selected = j;
+					if (pop.selected != -1)
+						imgBtn[pop.selected].select = false;
+					pop.selected = j;
+				}
+
+				break;
+			case iKeystate.Ended:
+				i = pop.selected;
+				if (i == -1) break;
+				imgBtn[i].select = false;
+				if (i == 0)
+					Main.me.reset("Intro");
+				else if (i == 1)
+					popMenu.show(false);
+				break;
+		}
 	}
 	void drawPopSetting(float dt)
 	{
-		popSetting.paint(dt);
+		popMenu.paint(dt);
+	}
+
+	// end ============
+	public iPopup popEnd;
+	iImage[] imgEndBtn;
+	iTexture texEnd;
+	void createPopEnd()
+	{
+		iPopup pop = new iPopup();
+
+		texEnd = new iTexture(Resources.Load<Texture>("bgMenu"));
+		iImage img = new iImage();
+		img.add(texEnd);
+		pop.add(img);
+
+		imgEndBtn = new iImage[1];
+		string[] strEndBtn = new string[]
+		{
+			"Ã³À½À¸·Î",
+		};
+		iStrTex stPop = new iStrTex();
+		for (int i = 0; i < 1; i++)
+		{
+			img = new iImage();
+			stPop = new iStrTex(methodStEnd, 300, 100);
+			stPop.setString(strEndBtn[i]);
+			img.position = new iPoint((texEnd.tex.width - stPop.tex.tex.width) / 2,
+									(stPop.tex.tex.height + 20) * i + 200);
+			img.add(stPop.tex);
+			pop.add(img);
+			imgEndBtn[i] = img;
+		}
+		pop.style = iPopupStyle.alpha;
+		pop.openPoint = new iPoint((MainCamera.devWidth - texEnd.tex.width) / 2,
+									(MainCamera.devHeight - texEnd.tex.height) / 2);
+		pop.closePoint = pop.openPoint;
+
+		popEnd = pop;
+	}
+
+	void methodStEnd(iStrTex st)
+	{
+		setRGBA(0.5f, 0.5f, 0.5f, 1);
+		fillRect(0, 0, 500, 80);
+		setRGBA(0, 0, 0, 1);
+		setLineWidth(3);
+		drawRect(0, 0, 500, 80);
+
+		setStringSize(30);
+		setStringName("Maplestory Bold");
+		setStringRGBA(0, 0, 0, 1);
+		drawString(st.str, st.wid / 2, st.hei / 2, VCENTER | HCENTER);
+	}
+
+	private void mousePopEnd(iKeystate stat, iPoint point)
+	{
+		iPopup pop = popEnd;
+		iImage[] imgBtn = imgEndBtn;
+
+		int i, j = -1;
+
+		switch (stat)
+		{
+			case iKeystate.Began:
+				i = pop.selected;
+				if (i == -1) break;
+				imgBtn[i].select = true;
+				break;
+			case iKeystate.Moved:
+				for (i = 0; i < imgBtn.Length; i++)
+				{
+					if (imgBtn[i].touchRect(pop.closePoint, new iSize(0, 0)).containPoint(point))
+					{
+						j = i;
+						break;
+					}
+				}
+
+				if (pop.selected != j)
+				{
+					pop.selected = j;
+					if (pop.selected != -1)
+						imgBtn[pop.selected].select = false;
+					pop.selected = j;
+				}
+
+				break;
+			case iKeystate.Ended:
+				i = pop.selected;
+				if (i == -1) break;
+				imgBtn[i].select = false;
+				if (i == 0)
+					Main.me.reset("Intro");
+				break;
+		}
+	}
+	void drawPopEnd(float dt)
+	{
+		popMenu.paint(dt);
 	}
 
 	// mob ========================================================
@@ -638,7 +803,7 @@ public class Proc : GObject
 		}
 	}
 
-	void addMonster(iPoint p)
+	public void addMonster(iPoint p)
 	{
 		for (int i = 0; i < 20; i++)
 		{
@@ -657,6 +822,16 @@ public class Proc : GObject
 			}
 		}
 	}
+
+	public void removeMonster()
+    {
+		for(int i = 0; i< monsterNum; i++)
+        {
+			if(monster[i].alive)
+				monster[i].alive = false;
+        }
+			
+    }
 
 #if true
 	public void loadMonsterImage()
@@ -835,49 +1010,53 @@ public class Field
     Texture texBg;
     float ratioW, ratioH;
 
+	public string strWorld, strMap;
+
     public int tileX, tileY;
     public int tileW, tileH;
     public int[] tiles;
     public iPoint off, offMin, offMax;
 
     public Color[] colorTile;
-    Texture fieldTex;
+    Texture texField;
+    Texture texFieldHead;
+
+	public Portal pt;
 
 
 	public Field()
     {
-        texBg = Resources.Load<Texture>("Background");
+		strWorld = "¹ö¼¸ ½£"; strMap = "1´Ü°è : ¹ö¼¸ ½£1";
+		texBg = Resources.Load<Texture>("Background");
         ratioW = 1.0f * MainCamera.devWidth / texBg.width;
         ratioH = 1.0f * MainCamera.devHeight / texBg.height;
 
-		fieldTex = Resources.Load<Texture>("Map/Tile/bsc0");
-        tileX = 30;
-        tileY = 19;
-        tileW = fieldTex.width;
-        tileH = fieldTex.height;
+		texField = Resources.Load<Texture>("Map/Tile/bsc0");
+		texFieldHead = Resources.Load<Texture>("Map/Tile/enH00");
+		tileX = 19;
+        tileY = 9;
+        tileW = texField.width;
+        tileH = texField.height;
+		Proc.me.p.position = new iPoint(1 * tileW, (tileY - 2) * tileH);
+		pt = new Portal(1, new iPoint(18 * tileW, (tileY - 1) * tileH));
 
-        tiles = new int[]
+		Proc.me.addMonster(new iPoint(5 * tileW, (tileY - 3) * tileH));
+		Proc.me.addMonster(new iPoint(10 * tileW, (tileY - 3) * tileH));
+		Proc.me.addMonster(new iPoint(12 * tileW, (tileY - 3) * tileH));
+		Proc.me.addMonster(new iPoint(18 * tileW, (tileY - 3) * tileH));
+
+		tiles = new int[]
         {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        };
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		};
 		off = new iPoint(0, 0);
         offMin = new iPoint(MainCamera.devWidth- tileW*tileX, MainCamera.devHeight-tileH*tileY);
         offMax = new iPoint(0, 0);
@@ -891,32 +1070,96 @@ public class Field
 	public void reset(int stage)
 	{
 		// Ä³¸¯ÅÍ À§Ä¡ ÃÊ±âÈ­, ¸Ê Á¤º¸ ÃÊ±âÈ­
-		Proc.me.p.position = new iPoint();
-		off = new iPoint(0, 0);
-		Proc.me.pt.Pos = new iPoint(4 * tileW, 12 * tileH);
-		//Proc.me.f.tiles
-		tiles = new int[]
+		if (stage == 1)
 		{
-			0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			Proc.me.removeMonster();
+			strWorld = "¹ö¼¸ ½£"; strMap = "2´Ü°è : ¹ö¼¸ ½£2";
+			tileX = 24;
+			tileY = 13;
+			Proc.me.p.position = new iPoint(1 * tileW, 11 * tileH);
+			off = new iPoint(0, 0);
+			pt.Pos = new iPoint(5 * tileW, (tileY - 7) * tileH);
+			pt.Index = 2;
+			Proc.me.addMonster(new iPoint(8 * tileW, (tileY - 5) * tileH));
+			Proc.me.addMonster(new iPoint(13 * tileW, (tileY - 7) * tileH));
+			Proc.me.addMonster(new iPoint(14 * tileW, (tileY - 9) * tileH));
+			Proc.me.addMonster(new iPoint(5 * tileW, (tileY - 12) * tileH));
+			Proc.me.addMonster(new iPoint(18 * tileW, (tileY - 10) * tileH));
+			//Proc.me.f.tiles
+			tiles = new int[]
+			{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 2, 2, 2, 2, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 2, 2, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		};
-		tileX = 24;
-		tileY = 13;
-		offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
-		offMax = new iPoint(0, 0);
-
-
+			};
+			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+			offMax = new iPoint(0, 0);
+		}
+		else if (stage == 2)
+		{
+			Proc.me.removeMonster();
+			strWorld = "¹ö¼¸ ½£"; strMap = "3´Ü°è : ¹ö¼¸ ½£3";
+			tileX = 15;
+			tileY = 25;
+			Proc.me.p.position = new iPoint(1 * tileW, (tileY - 2) * tileH);
+			off = new iPoint(0, 0);
+			pt.Pos = new iPoint(8 * tileW, (tileY - 19) * tileH);
+			pt.Index = 3;
+			Proc.me.addMonster(new iPoint(8 * tileW, (tileY - 8) * tileH));
+			Proc.me.addMonster(new iPoint(13 * tileW, (tileY - 18) * tileH));
+			Proc.me.addMonster(new iPoint(12 * tileW, (tileY - 9) * tileH));
+			Proc.me.addMonster(new iPoint(10 * tileW, (tileY - 10) * tileH));
+			Proc.me.addMonster(new iPoint(5 * tileW, (tileY - 12) * tileH));
+			Proc.me.addMonster(new iPoint(13 * tileW, (tileY - 9) * tileH));
+			Proc.me.addMonster(new iPoint(7 * tileW, (tileY - 15) * tileH));
+			Proc.me.addMonster(new iPoint(13 * tileW, (tileY - 20) * tileH));
+			//Proc.me.f.tiles
+			tiles = new int[]
+			{
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 0, 0,
+			0, 0, 0, 5, 0, 5, 2, 2, 2, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 2, 5, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 2, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 2, 2, 2, 5, 0, 0, 5, 0, 2,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 5, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 5, 0,
+			0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 2, 2, 2, 0, 0,
+			0, 5, 0, 0, 0, 5, 0, 0, 5, 2, 0, 0, 0, 0, 0,
+			0, 5, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			2, 2, 5, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			};
+			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+			offMax = new iPoint(0, 0);
+		}
+		else if (stage == 3)
+		{
+			Proc.me.removeMonster();
+			Proc.me.popMenu.show(true);
+		}
 		// ÆäÀÌµå ÀÎ ¾Æ¿ô
 
 	}
@@ -928,16 +1171,16 @@ public class Field
 
         iPoint p = new iPoint(MainCamera.devWidth / 2, MainCamera.devHeight / 2)
                 - Proc.me.p.position;
-        iPoint lOff = new iPoint(0, 0);
-        lOff.x = Mathf.Lerp(off.x, p.x, dt * 2);
-        lOff.y = Mathf.Lerp(off.y, p.y, dt * 2);
+        //iPoint lOff = new iPoint(0, 0);
+		off.x = Mathf.Lerp(off.x, p.x, dt * 2);
+		off.y = Mathf.Lerp(off.y, p.y, dt * 2);
 
-        off = lOff;
+		//off = lOff;
 
-        if (off.x < offMin.x)
-            off.x = offMin.x;
-        else if (off.x > offMax.x)
-            off.x = offMax.x;
+		if (off.x < offMin.x)
+			off.x = offMin.x;
+		else if (off.x > offMax.x)
+			off.x = offMax.x;
         if (off.y < offMin.y)
             off.y = offMin.y;
         else if (off.y > offMax.y)
@@ -950,10 +1193,11 @@ public class Field
             float y = off.y + tileH * (i / tileX);
             int t = tiles[i];
             Color c = colorTile[t];
-            if (t == 1)
+            if (t == 1 || t == 2)
             {
                 iGUI.instance.setRGBAWhite();
-                iGUI.instance.drawImage(fieldTex, x, y, iGUI.TOP | iGUI.LEFT);
+				iGUI.instance.drawImage(texFieldHead, x, y + 18 - texFieldHead.height, iGUI.TOP | iGUI.LEFT);
+				iGUI.instance.drawImage(texField, x, y + 18, iGUI.TOP | iGUI.LEFT);
             }
 			else if (t == 6)
 			{
@@ -967,6 +1211,7 @@ public class Field
             }
         }
         iGUI.instance.setRGBAWhite();
+		pt.paint(dt, off);
 	}
 }
 
