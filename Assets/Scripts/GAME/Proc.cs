@@ -18,6 +18,9 @@ public class Proc : GObject
 
 	public AttMgt am;
 
+	public InfoLog infoLog;
+	public iPoint positionInfoLog;
+
 	public override void load()
 	{
 		me = this;
@@ -27,7 +30,7 @@ public class Proc : GObject
 		f = new Field();
 		//pt = new Portal(1, new iPoint(4 * f.tileW, 16 * f.tileH));
 		//ui = new UI();
-
+		 
 		am = new AttMgt();
 		createInven();
 
@@ -36,21 +39,30 @@ public class Proc : GObject
 		popMiniMap.show(true);
 
 		// for testing
+
+		infoLog = new InfoLog();
+		positionInfoLog = new iPoint(10, 300);
 	}
 
 
 	public override void draw(float dt)
 	{
+		float _dt = dt;
+		if (popMenu.bShow)
+			dt = 0f;
+
 		f.paint(dt);
 		p.paint(dt, f.off);
 		drawMonster(dt, f.off);
-		drawPopUI(dt);
 		//pt.paint(dt, f.off);
 		//ui.paint(dt);
-
 		drawItem(dt, f.off);
 
+		infoLog.paint(dt, positionInfoLog);
+
+
 		am.update(dt, f.off);
+		drawPopUI(_dt);
 	}
 
 
@@ -58,8 +70,11 @@ public class Proc : GObject
 	{
 		mousePopInven(stat, point);
 		mousePopMiniMap(stat, point);
-		if(popMenu.bShow == true)
+		mouseInfoLog(stat, point);
+		if (popMenu.bShow == true)
 			mousePopMenu(stat, point);
+		if (popEnd.bShow == true)
+			mousePopEnd(stat, point);
 		// ui
 		// f
 		// p
@@ -575,14 +590,15 @@ public class Proc : GObject
 	// popMenu ====================================================
 	public iPopup popMenu;
 	iImage[] imgMenuBtn;
-	iTexture texMenu;
 	void createPopMenu()
 	{
 		iPopup pop = new iPopup();
 
-		texMenu = new iTexture(Resources.Load<Texture>("bgMenu"));
+		int w = 400, h = 250;
+		iStrTex st = new iStrTex(methodMenuBg, w, h);
+		st.setString("null");
 		iImage img = new iImage();
-		img.add(texMenu);
+		img.add(st.tex);
 		pop.add(img);
 
 		imgMenuBtn = new iImage[2];
@@ -596,18 +612,25 @@ public class Proc : GObject
 			img = new iImage();
 			stPop = new iStrTex(methodStMenu, 300, 100);
 			stPop.setString(strMenuBtn[i]);
-			img.position = new iPoint((texMenu.tex.width - stPop.tex.tex.width) /2 ,
-									(stPop.tex.tex.height + 20) * i + 200);
+			img.position = new iPoint((w - stPop.tex.tex.width) /2 ,
+									15 + 120 * i);
 			img.add(stPop.tex);
 			pop.add(img);
 			imgMenuBtn[i] = img;
 		}
 		pop.style = iPopupStyle.alpha;
-		pop.openPoint = new iPoint(	(MainCamera.devWidth - texMenu.tex.width) / 2,
-									(MainCamera.devHeight - texMenu.tex.height) / 2);
+		pop.openPoint = new iPoint(	(MainCamera.devWidth - w) / 2,
+									(MainCamera.devHeight - h) / 2);
 		pop.closePoint = pop.openPoint;
 
 		popMenu = pop;
+	}
+
+	void methodMenuBg(iStrTex st)
+	{
+		Texture tex = Resources.Load<Texture>("bgMenu");
+		setRGBA(1, 1, 1, 0.5f);
+		drawImage(tex, 0, 0, TOP | LEFT);
 	}
 
 	void methodStMenu(iStrTex st)
@@ -675,16 +698,20 @@ public class Proc : GObject
 
 	// end ============
 	public iPopup popEnd;
+	iStrTex stEndBg;
 	iImage[] imgEndBtn;
-	iTexture texEnd;
+
 	void createPopEnd()
 	{
 		iPopup pop = new iPopup();
 
-		texEnd = new iTexture(Resources.Load<Texture>("bgMenu"));
+		int w = 400, h = 350;
+		iStrTex st = new iStrTex(methodEndBg, w, h);
+		st.setString("0");
 		iImage img = new iImage();
-		img.add(texEnd);
+		img.add(st.tex);
 		pop.add(img);
+		stEndBg = st;
 
 		imgEndBtn = new iImage[1];
 		string[] strEndBtn = new string[]
@@ -697,30 +724,48 @@ public class Proc : GObject
 			img = new iImage();
 			stPop = new iStrTex(methodStEnd, 300, 100);
 			stPop.setString(strEndBtn[i]);
-			img.position = new iPoint((texEnd.tex.width - stPop.tex.tex.width) / 2,
-									(stPop.tex.tex.height + 20) * i + 200);
+			img.position = new iPoint((w - stPop.tex.tex.width) / 2,
+									65 + 120 * i);
 			img.add(stPop.tex);
 			pop.add(img);
 			imgEndBtn[i] = img;
 		}
 		pop.style = iPopupStyle.alpha;
-		pop.openPoint = new iPoint((MainCamera.devWidth - texEnd.tex.width) / 2,
-									(MainCamera.devHeight - texEnd.tex.height) / 2);
+		pop.openPoint = new iPoint((MainCamera.devWidth - w) / 2,
+									(MainCamera.devHeight - h) / 2);
+		pop.methodDrawBefore = drawPopEndBefore;
 		pop.closePoint = pop.openPoint;
 
 		popEnd = pop;
 	}
 
+	void methodEndBg(iStrTex st)
+	{
+		Texture tex = Resources.Load<Texture>("bgMenu");
+		setRGBA(1, 1, 1, 0.5f);
+		drawImage(tex, 0, 0, TOP | LEFT);
+		setStringName("Maplestory Bold");
+		setRGBA(0.3f, 1, 1, 1);
+		setStringSize(50);
+
+		int fail = int.Parse(st.str);
+		string[] s = new string[] { "Fail", "Clear!!" };
+		drawString(s[fail], st.wid / 2, 10, TOP | HCENTER);
+	}
+
 	void methodStEnd(iStrTex st)
 	{
+		
+
 		setRGBA(0.5f, 0.5f, 0.5f, 1);
 		fillRect(0, 0, 500, 80);
 		setRGBA(0, 0, 0, 1);
 		setLineWidth(3);
 		drawRect(0, 0, 500, 80);
 
-		setStringSize(30);
 		setStringName("Maplestory Bold");
+
+		setStringSize(30);
 		setStringRGBA(0, 0, 0, 1);
 		drawString(st.str, st.wid / 2, st.hei / 2, VCENTER | HCENTER);
 	}
@@ -767,9 +812,16 @@ public class Proc : GObject
 				break;
 		}
 	}
+
+	void drawPopEndBefore(float dt, iPopup pop, iPoint zero)
+	{
+		int n = (Proc.me.p.hp == 0 ? 0 : 1);
+		stEndBg.setString("" + n);
+	}
+
 	void drawPopEnd(float dt)
 	{
-		popMenu.paint(dt);
+		popEnd.paint(dt);
 	}
 
 	// mob ========================================================
@@ -901,8 +953,6 @@ public class Proc : GObject
 			tex = Resources.Load<Texture>("OrangeMush/Stand/mobStand0");
 		setRGBAWhite();
 		drawImage(tex, st.wid * 0.5f, st.hei, BOTTOM | HCENTER);
-		setStringSize(25);
-		drawString("" + (1 + frame), 25, 25, VCENTER | HCENTER);
 	}
 #endif
 
@@ -966,6 +1016,44 @@ public class Proc : GObject
 		invenNum = new int[invenXY];
 	}
 #endif
+	bool drag;
+	iPoint posLog = new iPoint();
+	void mouseInfoLog(iKeystate stat, iPoint point)
+	{
+		InfoLog iLog = infoLog;
+		int i, j = -1;
+
+		switch (stat)
+		{
+			case iKeystate.Began:
+				i = iLog.selected;
+				if (i == -1) break;
+				drag = true;
+				posLog = point - positionInfoLog;
+				break;
+			case iKeystate.Moved:
+				for (i = 0; i < 1; i++)
+				{
+					if (infoLog.rect.containPoint(point))
+					{
+						j = i;
+						break;
+					}
+				}
+				if (iLog.selected != j)
+					iLog.selected = j;
+				if (drag)
+				{
+					positionInfoLog = point - posLog;
+				}
+				break;
+			case iKeystate.Ended:
+				i = iLog.selected;
+				drag = false;
+				if (i == -1) break;
+				break;
+		}
+	}
 }
 
 
@@ -1058,8 +1146,14 @@ public class Field
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		};
 		off = new iPoint(0, 0);
-        offMin = new iPoint(MainCamera.devWidth- tileW*tileX, MainCamera.devHeight-tileH*tileY);
-        offMax = new iPoint(0, 0);
+		offMax = new iPoint(0, 0);
+		offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+#if true// 스크롤 되지 않는 맵에서는 발생!! 
+		if (offMax.x < offMin.x)
+			offMax.x = offMin.x;
+		if (offMax.y < offMin.y)
+			offMax.y = offMin.y;
+#endif
 
 		colorTile = new Color[(int)TileAttr.Max]
 		{
@@ -1102,8 +1196,14 @@ public class Field
 			0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 			};
-			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
 			offMax = new iPoint(0, 0);
+			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+#if true// 스크롤 되지 않는 맵에서는 발생!! 
+			if (offMax.x < offMin.x)
+				offMax.x = offMin.x;
+			if (offMax.y < offMin.y)
+				offMax.y = offMin.y;
+#endif
 		}
 		else if (stage == 2)
 		{
@@ -1152,13 +1252,20 @@ public class Field
 			0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 			};
-			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
 			offMax = new iPoint(0, 0);
+			offMin = new iPoint(MainCamera.devWidth - tileW * tileX, MainCamera.devHeight - tileH * tileY);
+#if true// 스크롤 되지 않는 맵에서는 발생!! 
+			if (offMax.x < offMin.x)
+				offMax.x = offMin.x;
+			if (offMax.y < offMin.y)
+				offMax.y = offMin.y;
+#endif
 		}
 		else if (stage == 3)
 		{
 			Proc.me.removeMonster();
-			Proc.me.popMenu.show(true);
+			if(Proc.me.popEnd.bShow == false)
+				Proc.me.popEnd.show(true);
 		}
 		// 페이드 인 아웃
 
@@ -1177,7 +1284,7 @@ public class Field
 
 		//off = lOff;
 
-		if (off.x < offMin.x)
+		if (off.x < offMin.x) 
 			off.x = offMin.x;
 		else if (off.x > offMax.x)
 			off.x = offMax.x;
@@ -1260,6 +1367,8 @@ public class AttMgt
 					iRect rt = a.rt;
 					rt.origin += off;
 					iGUI.instance.fillRect(rt);
+					if ((int)Proc.me.p.be % 2 == 0)
+						a.rt.origin.x -= Proc.me.p.rect.size.width;
 					Monster m = Proc.me.monster[j];
 					dst = m.rect;
 					dst.origin += m.position;
@@ -1267,9 +1376,10 @@ public class AttMgt
 					{
 						a.liveDt = a._liveDt;// kill rect
 						m.hp -= a.ap;
-						m.be = FObject.Behave.hitLeft;
+						m.be = FObject.Behave.hitLeft + (int)m.be % 2 ;
                         m.imgCurr = m.imgs[(int)m.be];
                         m.imgCurr.startAnimation(m.cbAnim, m);
+						Proc.me.infoLog.addDmg(a.ap);
 						break;
 					}
 				}
@@ -1288,6 +1398,7 @@ public class AttMgt
 				{
 					a.liveDt = a._liveDt;// kill rect
 					p.hp -= a.ap;
+					Proc.me.infoLog.addDmg(-a.ap);
 					break;
 				}
 			}
@@ -1319,4 +1430,99 @@ public class AttMgt
 			return;
 		}
 	}
+}
+
+public class InfoLog
+{
+	struct Info
+	{
+		public Info(string s, Color c)
+		{
+			this.s = s;
+			this.c = c;
+		}
+
+		public string s;
+		public Color c;
+	}
+
+	public int selected;
+	Info[] info;
+	int infoNum;
+	float displayDt;
+
+	public iRect rect;
+
+	public InfoLog(int max = 5)
+	{
+		info = new Info[max];
+		infoNum = 0;
+		selected = -1;
+	}
+
+	public void paint(float dt, iPoint off)
+	{
+		rect = new iRect(off.x, off.y, 400, 100);
+		if (displayDt == 0f)
+			return;
+
+		displayDt -= dt;
+		if (displayDt < 0)
+		{
+			displayDt = 0;
+			infoNum = 0;// 이전 데이터 삭제
+		}
+
+		float a = 1f;
+		if (displayDt < 1)
+			a = displayDt;
+
+		iGUI.instance.setRGBA(0, 0, 0, 0.6f * a);
+		iGUI.instance.fillRect(off.x, off.y, 400, 140);
+		iGUI.instance.setRGBA(1, 1, 1, 1);
+
+		iGUI.instance.setStringSize(20);
+		for(int i=0; i<infoNum; i++)
+		{
+			ref Info d = ref info[i];
+			iGUI.instance.setStringRGBA(d.c.r, d.c.g, d.c.b, d.c.a * a);
+			iGUI.instance.drawString(d.s, off + new iPoint(5, 5+25*i));
+		}
+	}
+
+	private void add(string s, Color c)
+	{
+		if( infoNum==info.Length )
+		{
+			infoNum--;
+			for (int i = 0; i < infoNum; i++)
+				info[i] = info[1 + i];
+		}
+
+		Info t = new Info(s, c);
+		info[infoNum] = t;
+		infoNum++;
+
+		displayDt = 2f;
+	}
+
+	public void addDmg(int dmg)
+	{
+		if (dmg > 0)
+		{
+			add("적에게 대미지" + dmg + "을(를) 입혔습니다.", Color.white);
+
+		}
+		if (dmg < 0)
+		{
+			add("대미지 피해" +  (-dmg) + "을(를) 받았습니다.", Color.red);
+		}
+	}
+
+	public void addItem(string name)
+	{
+		add("아이템 " + name + "을 획득했습니다.", Color.blue);
+	}
+
+
 }

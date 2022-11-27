@@ -2,7 +2,6 @@
 using UnityEngine;
 
 using STD;
-using static UnityEditor.Progress;
 
 public class Monster : FObject
 {

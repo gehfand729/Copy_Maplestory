@@ -191,6 +191,7 @@ namespace STD
 
 		private static void addNewTag(string tag)
 		{
+#if false
 			SerializedObject so = new SerializedObject(
 				AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
 			SerializedProperty sp = so.FindProperty("tags");
@@ -210,6 +211,7 @@ namespace STD
 			p.stringValue = tag;
 
 			so.ApplyModifiedProperties();
+#endif
 		}
 
 		struct SpriteInfo

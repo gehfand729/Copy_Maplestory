@@ -25,6 +25,10 @@ public class Intro : GObject
 
     public override void key(iKeystate stat, iPoint point)
     {
+		if (keyPopInfo(stat, point))
+			return;
+		if (keyPopHow(stat, point))
+			return;
         mousePopBtn(stat, point);
         //if(stat == iKeystate.Began)
         //{
@@ -156,9 +160,11 @@ public class Intro : GObject
         drawString(st.str, st.wid / 2, st.hei / 2, VCENTER | HCENTER);
     }
 #endif
+
     // PopInfo ========================================================
     // 들어갈 정보(인적사항, 가능한 기술, 경력, 깃허브(QR))
     iPopup popInfo = null;
+	iImage imgPopInfoBg;
     iImage[] imgInfo;
 
     private void createPopInfo()
@@ -172,7 +178,9 @@ public class Intro : GObject
         st.setString("0");
         img.add(st.tex);
         pop.add(img);
-        pop.style = iPopupStyle.alpha;
+		imgPopInfoBg = img;
+
+		pop.style = iPopupStyle.alpha;
         pop.openPoint = new iPoint((MainCamera.devWidth -st.wid) /2, (MainCamera.devHeight - st.hei) / 2);
         pop.closePoint = pop.openPoint;
 
@@ -199,8 +207,24 @@ public class Intro : GObject
         drawString("Github", st.wid - tex.width * ratio - 10, 10 + tex.height * ratio + 10);
 
     }
-    // popHowToPlay =======
-    iPopup popHow = null;
+
+	bool keyPopInfo(iKeystate stat, iPoint point)
+	{
+		if (popInfo.bShow == false)
+			return false;
+		if (popInfo.state != iPopupState.proc)
+			return true;
+
+		if (imgPopInfoBg.touchRect(popInfo.closePoint, new iSize()).containPoint(point) == false)
+			popInfo.show(false);
+
+		return true;
+	}
+
+
+	// popHowToPlay =======
+	iPopup popHow = null;
+	iImage imgPopHowBg;
     iImage[] imgHow;
 
     private void createPopHow()
@@ -214,6 +238,8 @@ public class Intro : GObject
         st.setString("0");
         img.add(st.tex);
         pop.add(img);
+		imgPopHowBg = img;
+
         pop.style = iPopupStyle.alpha;
         pop.openPoint = new iPoint((MainCamera.devWidth - st.wid) / 2, (MainCamera.devHeight - st.hei) / 2);
         pop.closePoint = pop.openPoint;
@@ -231,17 +257,28 @@ public class Intro : GObject
         setStringSize(40);
         setStringName("Maplestory Light");
         setStringRGBA(0, 0, 0, 1);
-        drawString("이름 : 이승찬", 10, 10);
-        drawString("이메일 : gehfand729@gmail.com", 10, 60);
+        drawString("조작법 - 좌우 방향키 : 이동, ctrl : 공격, alt : 점프,", 10, 10);
+        drawString(" 윗 방향키 : 상호작용(포탈), \n z : 아이템 줍기, i : 인벤토리 열기, \n esc: 메뉴", 10, 60);
+		drawString("버섯들을 사냥하거나 피하여 최종 목적지까지 \n 안전하게 도달하세요.", 10, 240);
 
         setRGBAWhite();
-        Texture tex = Resources.Load<Texture>("githubQR");
-        float ratio = 0.5f;
-        drawImage(tex, st.wid - tex.width * ratio - 10, 10, ratio, ratio, TOP | LEFT);
-        drawString("Github", st.wid - tex.width * ratio - 10, 10 + tex.height * ratio + 10);
 
     }
-    private void mousePopBtn(iKeystate stat, iPoint point)
+
+	bool keyPopHow(iKeystate stat, iPoint point)
+	{
+		if (popHow.bShow == false)
+			return false;
+		if (popHow.state != iPopupState.proc)
+			return true;
+
+		if (imgPopHowBg.touchRect(popInfo.closePoint, new iSize()).containPoint(point) == false)
+			popHow.show(false);
+
+		return true;
+	}
+
+	private void mousePopBtn(iKeystate stat, iPoint point)
     {
         iPopup pop = popGs;
         iImage[] imgBtn = imgGsBtn;

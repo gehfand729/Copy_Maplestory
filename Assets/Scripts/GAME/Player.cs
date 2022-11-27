@@ -132,7 +132,7 @@ public class Player : FObject
 
 	public Player()
 	{
-		maxHp = 100;
+		maxHp = 50;
 		hp = maxHp;
 		lv = 1;
 		exp = 0;
@@ -178,6 +178,7 @@ public class Player : FObject
 				if (hp > 0)
 				{
 					hp -= m.ap;
+					Proc.me.infoLog.addDmg(-m.ap);
 
 				}
 				t = 0;
@@ -186,7 +187,9 @@ public class Player : FObject
 		}
 		if(hp < 1)
         {
-			be = Behave.dieLeft;
+			be = (Behave)((int)Behave.dieLeft + (int)be % 2);
+			if (Proc.me.popEnd.bShow == false)
+				Proc.me.popEnd.show(true);
         }
 		be = (Behave)((int)be / 2 * 2) + front;
 		imgCurr = imgs[(int)be];
@@ -280,8 +283,10 @@ public class Player : FObject
 				if (item != null)
                 {
 					Proc.me.removeItem(item);
-                }
-            }
+					Proc.me.infoLog.addItem(item.name);
+
+				}
+			}
 		}
 
 		if (v.x != 0 || v.y != 0)

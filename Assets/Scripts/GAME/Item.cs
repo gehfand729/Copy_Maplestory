@@ -19,6 +19,7 @@ public class Item
 	// 이름, 종류, 설명, 이미지, 아이템 위치, 아이템 rect, ...
 	int index;
 	int kind;
+	public string name;
 	Texture tex;
 	Behave be;
 	public iPoint position;
@@ -32,6 +33,8 @@ public class Item
 	public Item(int i)
 	{
 		index = i;
+		kind = 0;
+		name = "버섯";
 		position = new iPoint(0,0);
 		rect = new iRect(0, 0, 10, 10);
 		be = Behave.fall;
