@@ -132,7 +132,7 @@ public class Player : FObject
 
 	public Player()
 	{
-		maxHp = 50;
+		maxHp = 100;
 		hp = maxHp;
 		lv = 1;
 		exp = 0;
