@@ -12,12 +12,18 @@ namespace STD
 
 		public iTexture tex;
 		public iPoint position;
+		public iPoint posDrawCenter;
 
 		public bool animation;
 		public int repeatIdx, repeatNum; // 0 : loop, 1 ~ : count
 		public int frame;
 		public float frameDt, _frameDt;
 		public float scale;
+
+		public bool select;
+		public float selectDt, _selectDt, selectScale;
+
+		public bool leftRight;
 
 		public iImage()
 		{
@@ -30,9 +36,45 @@ namespace STD
 			repeatIdx = 0;
 			repeatNum = 0;
 			frame = 0;
-			_frameDt = 0.0167f;// 1 / 60
+			_frameDt = 1f;// 1 / 60
 			frameDt = 0.0f;
 			scale = 1.0f;
+
+			select = false;
+			_selectDt = 0.2f;
+			selectDt = 0.0f;
+			selectScale = -0.2f;
+
+			leftRight = false;
+
+			methodAnimation = null;
+			obj = null;
+		}
+		public iImage(iPoint p)
+        {
+			listTex = new List<iTexture>();
+
+			//tex;
+			position = new iPoint(0, 0);
+			posDrawCenter = p;
+
+			animation = false;
+			repeatIdx = 0;
+			repeatNum = 0;
+			frame = 0;
+			_frameDt = 1f;// 1 / 60
+			frameDt = 0.0f;
+			scale = 1.0f;
+
+			select = false;
+			_selectDt = 0.2f;
+			selectDt = 0.0f;
+			selectScale = -0.2f;
+
+			leftRight = false;
+
+			methodAnimation = null;
+			obj = null;
 		}
 
 		public iImage clone()
@@ -43,7 +85,9 @@ namespace STD
 
 			img.tex = tex;
 			img.position = position;
+			img.posDrawCenter = posDrawCenter;
 
+			img.leftRight = leftRight;
 			img.animation = animation;
 			img.repeatIdx = repeatIdx;
 			img.repeatNum = repeatNum;
@@ -68,7 +112,7 @@ namespace STD
 
 		public void paint(float dt)
 		{
-			paint(dt, new iPoint(0, 0));
+			paint(dt, new iPoint(0, 0) + new iPoint());
 		}
 		public void paint(float dt, iPoint off)
 		{
@@ -92,6 +136,8 @@ namespace STD
 							if (repeatIdx == repeatNum)
 							{
 								animation = false;
+								if (methodAnimation != null)
+									methodAnimation(obj);
 							}
 						}
 					}
@@ -102,21 +148,45 @@ namespace STD
 			Texture t = tex.tex;
 			//iGUI.instance.drawImage(t, position + off, iGUI.TOP | iGUI.LEFT);
 			off += position;
-			if( scale!=1.0f )
-			{
-				off.x += (1 - scale) * t.width / 2;
-				off.y += (1 - scale) * t.height / 2;
+
+			float s = 1.0f;
+			if( select )
+            {
+				selectDt += dt;
+				if( selectDt > _selectDt)
+					selectDt = _selectDt;
+            }
+            else
+            {
+				selectDt -= dt;
+				if (selectDt < 0)
+					selectDt = 0;
 			}
-			iGUI.instance.drawImage(t, off.x, off.y, scale, scale,
-				iGUI.TOP | iGUI.LEFT, 2, 0, iGUI.REVERSE_NONE);
+			s = 1 + selectScale * selectDt / _selectDt;
+			float ss = scale * s;
+
+			if ( ss!=1.0f )
+			{
+				off.x += (1 - ss) * t.width / 2;
+				off.y += (1 - ss) * t.height / 2;
+			}
+			iGUI.instance.drawImage(t, off.x, off.y, ss, ss,
+				iGUI.TOP | iGUI.LEFT, 2, 0, leftRight ? iGUI.REVERSE_WIDTH : iGUI.REVERSE_NONE);
 		}
 
-		public void startAnimation()
+		public delegate void MethodAnimation(object obj);
+		MethodAnimation methodAnimation;
+		object obj;
+
+		public void startAnimation(MethodAnimation m = null, object o = null)
 		{
 			animation = true;
 			repeatIdx = 0;
 			frame = 0;
 			frameDt = 0.0f;
+
+			methodAnimation = m;
+			obj = o;
 		}
 
 		public iRect touchRect()
@@ -130,6 +200,17 @@ namespace STD
 								position.y + off.y - s.height / 2,
 								tex.tex.width + s.width,
 								tex.tex.height + s.height);
+		}
+		public iRect topTouchRect(iPoint off, iSize s)
+		{
+			return new iRect(	position.x + off.x,
+								position.y + off.y,
+								s.width,
+								s.height);
+		}
+		public iRect topTouchRect(iPoint off)
+		{
+			return topTouchRect(off, new iSize(tex.tex.width, 22));
 		}
 
 		public iPoint center()

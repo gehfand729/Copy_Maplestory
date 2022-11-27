@@ -139,7 +139,14 @@ namespace STD
 				GUI.EndClip();
 		}
 #endif
-
+		public void setRGBAWhite()
+        {
+			color = Color.white;
+        }
+		public void setBlack()
+		{
+			color = Color.black;
+		}
 		public void setRGBA(float r, float g, float b, float a)
 		{
 			color.r = r;
@@ -169,6 +176,10 @@ namespace STD
 			drawImage(texDot, cx, cy, len, lineWidth, VCENTER | HCENTER, 2, -degree, REVERSE_NONE);
 		}
 
+		public void drawRect(iPoint p, iRect rt)
+        {
+			drawRect(p.x, p.y, rt.size.width, rt.size.height);
+        }
 		public void drawRect(float x, float y, float width, float height)
 		{
 			// top & bottom
@@ -181,10 +192,16 @@ namespace STD
 						x + width - lineWidth, y + height - lineWidth);
 		}
 
-		public void fillRect(float x, float y, float width, float height)
+        public void fillRect(iRect rt)
+        {
+			fillRect(rt.origin.x, rt.origin.y, rt.size.width, rt.size.height);
+        }
+
+        public void fillRect(float x, float y, float width, float height)
 		{
 			drawImage(texDot, x, y, width, height, TOP | LEFT, 2, 0, REVERSE_NONE);
 		}
+
 
 		// ======================================================
 		// image
@@ -208,6 +225,11 @@ namespace STD
 		public void drawImage(Texture tex, iPoint p, float sx, float sy, int anc)
 		{
 			drawImage(tex, p.x, p.y, sx, sy, anc, 2, 0, REVERSE_NONE);
+		}
+
+		public void drawImage(Texture tex, float x, float y, float sx, float sy, int anc)
+		{
+			drawImage(tex, x, y, sx, sy, anc, 2, 0, REVERSE_NONE);
 		}
 
 		public void drawImage(Texture tex, iPoint p, float sx, float sy, int anc, int xyz, float degree, int reverse)
@@ -318,7 +340,7 @@ namespace STD
 		public iSize sizeOfString(string str)
 		{
 			GUIStyle style = new GUIStyle(GUI.skin.label);
-			style.font = Resources.Load<Font>(name);
+			style.font = Resources.Load<Font>(stringName);
 			style.fontSize = (int)stringSize;
 			style.fontStyle = FontStyle.Normal;
 			style.normal.textColor = stringColor;
@@ -329,7 +351,7 @@ namespace STD
 		public void drawString(string str, float x, float y, int anc = TOP | LEFT)
 		{
 			GUIStyle style = new GUIStyle(GUI.skin.label);
-			style.font = Resources.Load<Font>(name);
+			style.font = Resources.Load<Font>(stringName);
 			style.fontSize = (int)stringSize;
 			style.fontStyle = FontStyle.Normal;
 			style.normal.textColor = stringColor;
@@ -347,7 +369,7 @@ namespace STD
 				case VCENTER | RIGHT:	x -= size.x;		y -= size.y / 2; break;
 				case VCENTER | HCENTER: x -= size.x / 2;	y -= size.y / 2; break;
 			}
-			GUI.color = color;// #issue
+			GUI.color = stringColor;// #issue
 			GUI.Label(new Rect(x, y, size.x, size.y), str, style);
 		}
 	}
